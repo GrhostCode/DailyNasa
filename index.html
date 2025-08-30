@@ -122,7 +122,6 @@
       API_KEY = v.trim();
       localStorage.setItem(KEY_STORAGE, API_KEY);
       keyLabel.textContent = API_KEY;
-      // Reload both panels with the new key
       loadDaily();
       rerollRandom();
     }
@@ -211,7 +210,7 @@
       renderMedia(apod, media);
       titleEl.textContent = apod.title || "Untitled";
       explEl.textContent = apod.explanation || "";
-      info.textContent = ${fmtDate(apod.date)} • © NASA/APOD;
+      info.textContent = `${fmtDate(apod.date)} • © NASA/APOD`;
     } catch (e) {
       info.textContent = "—";
       titleEl.textContent = "Error loading APOD";
@@ -248,7 +247,7 @@
       renderMedia(apod, media);
       titleEl.textContent = apod.title || "Untitled";
       explEl.textContent = apod.explanation || "";
-      info.textContent = ${fmtDate(apod.date)} • © NASA/APOD;
+      info.textContent = `${fmtDate(apod.date)} • © NASA/APOD`;
     } catch (e) {
       info.textContent = "—";
       titleEl.textContent = "Error loading random APOD";

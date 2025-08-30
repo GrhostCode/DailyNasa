@@ -1,277 +1,477 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NASA APOD — Daily & Random</title>
-  <style>
-    :root { --bg:#0b1020; --panel:#121936; --accent:#7aa2f7; --text:#eaf0ff; --muted:#9fb0d1; --card: rgba(18,25,54,.65); }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-      background: radial-gradient(1100px 700px at 20% -10%, #19244d 0%, #0b1020 60%);
-      color: var(--text);
-    }
-    header {
-      padding: 18px 22px;
-      border-bottom: 1px solid rgba(255,255,255,.06);
-      display:flex; align-items:center; gap:12px; flex-wrap:wrap;
-    }
-    h1 { font-size: clamp(20px, 4vw, 28px); margin: 0; }
-    main { max-width: 1200px; margin: 0 auto; padding: 18px; display: grid; gap: 18px; }
-    .grid { display:grid; grid-template-columns: 1fr; gap:18px; }
-    @media (min-width: 1024px) { .grid { grid-template-columns: 1fr 1fr; } }
-    .card {
-      background: var(--card); border: 1px solid rgba(255,255,255,.08);
-      border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.25);
-      display:flex; flex-direction:column;
-    }
-    .media { display:flex; align-items:center; justify-content:center; background:#070b18; }
-    img, iframe { max-width: 100%; width: 100%; height: auto; display:block; }
-    .content { padding: 16px; display:grid; gap:10px; }
-    .title { font-weight: 800; font-size: 22px; margin: 0; }
-    .meta  { color: var(--muted); font-size: 14px; }
-    .desc  { line-height: 1.65; font-size: 16px; color:#e7ecff; }
-    .toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-    .row-between { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
-    .btn { background: var(--accent); color:#071024; border:0; border-radius: 999px; padding:10px 14px; cursor:pointer; font-weight:700; }
-    .btn.secondary { background: #141b36; color: var(--text); border:1px solid rgba(255,255,255,.12); }
-    .btn.ghost { background: transparent; color: var(--text); border:1px dashed rgba(255,255,255,.18); }
-    .key { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#0f1631; padding:2px 6px; border-radius:6px; border:1px solid rgba(255,255,255,.08); }
-    a { color: #93c5fd; }
-    footer { text-align:center; color:var(--muted); font-size:12px; padding: 10px 0 20px; }
-    .small { font-size: 12px; color: var(--muted); }
-    .pill { padding:2px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.12); font-size:12px; }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Space Hub — NASA + SpaceX + Weather</title>
+<style>
+  :root{
+    --bg:#0b1020;--card:#121936cc;--text:#eaf0ff;--muted:#9fb0d1;--accent:#7aa2f7;--border:#ffffff1e;
+  }
+  [data-theme="light"]{
+    --bg:#f5f7ff;--card:#ffffff;--text:#0b1020;--muted:#4b5b86;--accent:#2563eb;--border:#0b10202a;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:radial-gradient(1000px 600px at 20% -10%,#19244d 0%,var(--bg) 60%);color:var(--text)}
+  header{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  h1{font-size:20px;margin:0;display:flex;gap:10px;align-items:center}
+  .btn{background:var(--accent);color:#061022;border:0;border-radius:999px;padding:8px 12px;font-weight:700;cursor:pointer}
+  .btn.secondary{background:transparent;color:inherit;border:1px solid var(--border)}
+  .btn.ghost{background:transparent;border:1px dashed var(--border);color:inherit}
+  .pill{padding:2px 8px;border-radius:999px;border:1px solid var(--border);font-size:12px;color:var(--muted)}
+  main{max-width:1200px;margin:0 auto;padding:16px;display:grid;gap:14px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 30px #0004;overflow:hidden}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap}
+  .tab{padding:10px 12px;border:1px solid var(--border);border-radius:999px;background:transparent;color:inherit;cursor:pointer}
+  .tab.active{background:var(--accent);color:#061022;border:0}
+  .panel{display:none}
+  .panel.active{display:block}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .media{display:flex;align-items:center;justify-content:center;background:#060a18}
+  [data-theme="light"] .media{background:#e9eefc}
+  img,iframe,video{max-width:100%;width:100%;height:auto;display:block}
+  .content{padding:14px;display:grid;gap:10px}
+  .title{font-weight:800;margin:0}
+  .meta{color:var(--muted);font-size:14px}
+  .grid2{display:grid;grid-template-columns:1fr;gap:14px}
+  @media(min-width:980px){.grid2{grid-template-columns:1fr 1fr}}
+  input,select{padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:inherit}
+  label{display:flex;gap:6px;align-items:center}
+  .key{font-family:ui-monospace,Menlo,Consolas,monospace;padding:2px 6px;border-radius:6px;border:1px solid var(--border)}
+  .list{padding:12px}
+  .list > div{padding:10px;border:1px solid var(--border);border-radius:12px;margin-bottom:10px}
+  footer{color:var(--muted);text-align:center;font-size:12px;padding:10px 0 20px}
+</style>
 </head>
 <body>
-  <header>
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 2l1.76 5.41h5.69l-4.6 3.34 1.76 5.41L12 12.82 7.39 16.16l1.76-5.41-4.6-3.34h5.69L12 2z" fill="#ffd166"/>
-    </svg>
-    <h1>NASA Astronomy Picture of the Day — Daily & Random</h1>
-  </header>
+<header>
+  <h1>🛰️ Space Hub</h1>
+  <div class="row">
+    <span class="pill" id="themeState">Dark</span>
+    <button class="btn secondary" id="toggleTheme">Toggle Theme</button>
+  </div>
+</header>
 
-  <main>
-    <section class="card" style="padding: 14px;">
-      <div class="row-between">
-        <div class="toolbar">
-          <span>API key: <span id="keyLabel" class="key">DEMO_KEY</span></span>
-          <span class="pill">No card needed</span>
-        </div>
-        <div class="toolbar">
-          <button id="setKey" class="btn">Set my NASA key</button>
-          <button id="useDemo" class="btn secondary">Use DEMO_KEY</button>
-          <a class="btn ghost" href="https://api.nasa.gov/" target="_blank" rel="noreferrer">Get a free key</a>
-        </div>
+<main>
+  <!-- Keys -->
+  <section class="card" style="padding:12px">
+    <div class="row" style="justify-content:space-between">
+      <div class="row">
+        <span>NASA key: <span id="nasaKeyLbl" class="key">DEMO_KEY</span></span>
+        <span class="pill">No card needed</span>
       </div>
-      <p class="small" style="margin:6px 2px 0;">Your key is stored in your browser only (localStorage). If you leave it as DEMO_KEY, it still works for light personal use.</p>
-    </section>
+      <div class="row">
+        <button id="setNasaKey" class="btn">Set NASA key</button>
+        <button id="useDemo" class="btn secondary">Use DEMO_KEY</button>
+        <a class="btn ghost" href="https://api.nasa.gov/" target="_blank" rel="noreferrer">Get NASA key</a>
+      </div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <span>Unsplash key: <span id="unsplashKeyLbl" class="key">unset</span></span>
+      <button id="setUnsplashKey" class="btn secondary">Set Unsplash key</button>
+      <a class="btn ghost" href="https://unsplash.com/developers" target="_blank" rel="noreferrer">Get Unsplash key</a>
+    </div>
+    <p class="meta" style="margin:6px 2px 0">Keys are stored locally in your browser.</p>
+  </section>
 
-    <div class="grid">
-      <!-- DAILY APOD PANEL -->
-      <section class="card" id="dailyCard">
-        <div id="dailyMedia" class="media" aria-live="polite"></div>
+  <!-- Tabs -->
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-tab="apod">APOD</button>
+    <button class="tab" data-tab="mars">Mars Rover</button>
+    <button class="tab" data-tab="epic">EPIC Earth</button>
+    <button class="tab" data-tab="spacex">SpaceX</button>
+    <button class="tab" data-tab="weather">Weather</button>
+    <button class="tab" data-tab="unsplash">Unsplash</button>
+  </div>
+
+  <!-- APOD -->
+  <section id="apod" class="panel active">
+    <div class="grid2">
+      <!-- Daily -->
+      <section class="card">
+        <div id="apodDailyMedia" class="media"></div>
         <div class="content">
-          <div class="row-between">
-            <div id="dailyInfo" class="meta">Loading today’s image…</div>
-            <div class="toolbar">
-              <button id="dailyRefresh" class="btn secondary" title="Refetch today">Refresh</button>
-              <button id="dailyOpenHD" class="btn ghost" title="Open HD image in a new tab">Open HD</button>
-              <button id="dailyDownload" class="btn ghost" title="Download the image if available">Download</button>
+          <div class="row" style="justify-content:space-between">
+            <div id="apodDailyInfo" class="meta">Loading today…</div>
+            <div class="row">
+              <button id="apodDailyRefresh" class="btn secondary">Refresh</button>
+              <button id="apodDailyOpen" class="btn ghost">Open HD</button>
+              <button id="apodDailyDL" class="btn ghost">Download</button>
             </div>
           </div>
-          <h2 id="dailyTitle" class="title"></h2>
-          <div id="dailyExplanation" class="desc"></div>
+          <h3 id="apodDailyTitle" class="title"></h3>
+          <div id="apodDailyExpl" class="meta"></div>
         </div>
       </section>
 
-      <!-- RANDOM APOD PANEL -->
-      <section class="card" id="randomCard">
-        <div id="randomMedia" class="media" aria-live="polite"></div>
+      <!-- Random -->
+      <section class="card">
+        <div id="apodRndMedia" class="media"></div>
         <div class="content">
-          <div class="row-between">
-            <div id="randomInfo" class="meta">Click “Re-roll” to get a random APOD.</div>
-            <div class="toolbar">
-              <button id="randomReroll" class="btn" title="Get a random APOD">Re-roll 🔄</button>
-              <button id="randomOpenHD" class="btn ghost" title="Open HD image in a new tab">Open HD</button>
-              <button id="randomDownload" class="btn ghost" title="Download the image if available">Download</button>
+          <div class="row" style="justify-content:space-between">
+            <div id="apodRndInfo" class="meta">Click Re-roll</div>
+            <div class="row">
+              <button id="apodRndReroll" class="btn">Re-roll 🔄</button>
+              <button id="apodRndOpen" class="btn ghost">Open HD</button>
+              <button id="apodRndDL" class="btn ghost">Download</button>
             </div>
           </div>
-          <h2 id="randomTitle" class="title"></h2>
-          <div id="randomExplanation" class="desc"></div>
+          <h3 id="apodRndTitle" class="title"></h3>
+          <div id="apodRndExpl" class="meta"></div>
         </div>
       </section>
     </div>
-  </main>
+  </section>
 
-  <footer>Data courtesy of NASA APOD. Some entries are videos; we embed when possible or show a link/thumbnail.</footer>
+  <!-- Mars Rover -->
+  <section id="mars" class="panel">
+    <section class="card">
+      <div class="content">
+        <div class="row">
+          <label>Rover
+            <select id="rover">
+              <option>curiosity</option>
+              <option>perseverance</option>
+              <option>opportunity</option>
+              <option>spirit</option>
+            </select>
+          </label>
+          <label>Sol <input id="sol" type="number" min="0" value="1000"/></label>
+          <label>Camera
+            <select id="camera">
+              <option value="">Any</option>
+              <option value="FHAZ">FHAZ</option>
+              <option value="RHAZ">RHAZ</option>
+              <option value="NAVCAM">NAVCAM</option>
+              <option value="MAST">MAST</option>
+              <option value="PANCAM">PANCAM</option>
+              <option value="CHEMCAM">CHEMCAM</option>
+            </select>
+          </label>
+          <button id="marsLoad" class="btn">Load</button>
+          <button id="marsPrev" class="btn secondary">Sol -1</button>
+          <button id="marsNext" class="btn secondary">Sol +1</button>
+        </div>
+      </div>
+      <div id="marsMedia" class="media"></div>
+      <div class="content">
+        <div id="marsInfo" class="meta">—</div>
+      </div>
+    </section>
+  </section>
+
+  <!-- EPIC Earth -->
+  <section id="epic" class="panel">
+    <section class="card">
+      <div class="content">
+        <div class="row">
+          <label>Date <input type="date" id="epicDate"/></label>
+          <button id="epicLoad" class="btn">Load</button>
+        </div>
+        <div id="epicInfo" class="meta">Pick a date with images (many days have several).</div>
+      </div>
+      <div id="epicMedia" class="media"></div>
+      <div class="content">
+        <div class="row">
+          <button id="epicPrev" class="btn secondary">Prev</button>
+          <button id="epicNext" class="btn secondary">Next</button>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- SpaceX -->
+  <section id="spacex" class="panel">
+    <section class="card">
+      <div class="content">
+        <div class="row">
+          <button id="sxUpcoming" class="btn">Load Upcoming</button>
+          <button id="sxLatest" class="btn secondary">Latest Launch</button>
+        </div>
+      </div>
+      <div class="list" id="sxList"></div>
+    </section>
+  </section>
+
+  <!-- Weather -->
+  <section id="weather" class="panel">
+    <section class="card">
+      <div class="content">
+        <div class="row">
+          <label>Location <input id="wxQuery" placeholder="e.g., San Juan, PR"/></label>
+          <button id="wxGo" class="btn">Get Weather</button>
+        </div>
+        <div id="wxInfo" class="meta">Powered by Open-Meteo & OpenStreetMap (no keys).</div>
+      </div>
+      <div class="content">
+        <div id="wxNow" class="title"></div>
+        <div id="wxHourly" class="meta"></div>
+      </div>
+    </section>
+  </section>
+
+  <!-- Unsplash -->
+  <section id="unsplash" class="panel">
+    <section class="card">
+      <div class="content">
+        <div class="row">
+          <label>Query <input id="usQuery" placeholder="nebula, galaxy, rocket"/></label>
+          <button id="usRandom" class="btn">Random Photo</button>
+          <button id="usDL" class="btn secondary">Download</button>
+        </div>
+        <div id="usInfo" class="meta">Requires Unsplash access key (free). Set it at the top.</div>
+      </div>
+      <div id="usMedia" class="media"></div>
+      <div class="content">
+        <div id="usCredit" class="meta"></div>
+      </div>
+    </section>
+  </section>
+</main>
+
+<footer>Data courtesy of NASA, SpaceX, Open-Meteo, OpenStreetMap, Unsplash. Keys stored locally.</footer>
 
 <script>
-  // ---- Key management ----
-  const KEY_STORAGE = "nasa_api_key";
-  let API_KEY = localStorage.getItem(KEY_STORAGE) || "DEMO_KEY";
-  const keyLabel = document.getElementById("keyLabel");
-  keyLabel.textContent = API_KEY;
+/* ===== Theme ===== */
+const themeKey="spacehub_theme";
+const themeState=document.getElementById("themeState");
+function setTheme(t){document.documentElement.setAttribute("data-theme",t); localStorage.setItem(themeKey,t); themeState.textContent=t[0].toUpperCase()+t.slice(1);}
+setTheme(localStorage.getItem(themeKey)||"dark");
+document.getElementById("toggleTheme").onclick=()=>setTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark");
 
-  document.getElementById("setKey").addEventListener("click", () => {
-    const v = prompt("Paste your NASA API key (or leave blank to cancel):", API_KEY === "DEMO_KEY" ? "" : API_KEY);
-    if (v && v.trim()) {
-      API_KEY = v.trim();
-      localStorage.setItem(KEY_STORAGE, API_KEY);
-      keyLabel.textContent = API_KEY;
-      loadDaily();
-      rerollRandom();
+/* ===== Keys ===== */
+const NASA_KEY_STORE="nasa_api_key", UNSPLASH_KEY_STORE="unsplash_api_key";
+let NASA_KEY=localStorage.getItem(NASA_KEY_STORE)||"DEMO_KEY";
+let UNSPLASH_KEY=localStorage.getItem(UNSPLASH_KEY_STORE)||"";
+document.getElementById("nasaKeyLbl").textContent=NASA_KEY;
+document.getElementById("unsplashKeyLbl").textContent=UNSPLASH_KEY||"unset";
+document.getElementById("setNasaKey").onclick=()=>{const v=prompt("Enter NASA API key:", NASA_KEY==="DEMO_KEY"?"":NASA_KEY); if(v&&v.trim()){NASA_KEY=v.trim(); localStorage.setItem(NASA_KEY_STORE,NASA_KEY); document.getElementById("nasaKeyLbl").textContent=NASA_KEY; loadAPODDaily(); rerollAPOD(); }};
+document.getElementById("useDemo").onclick=()=>{NASA_KEY="DEMO_KEY"; localStorage.setItem(NASA_KEY_STORE,NASA_KEY); document.getElementById("nasaKeyLbl").textContent=NASA_KEY; loadAPODDaily(); rerollAPOD(); };
+document.getElementById("setUnsplashKey").onclick=()=>{const v=prompt("Enter Unsplash access key:", UNSPLASH_KEY||""); if(v&&v.trim()){UNSPLASH_KEY=v.trim(); localStorage.setItem(UNSPLASH_KEY_STORE,UNSPLASH_KEY); document.getElementById("unsplashKeyLbl").textContent=UNSPLASH_KEY;}};
+
+/* ===== Tabs ===== */
+document.querySelectorAll(".tab").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+    b.classList.add("active");
+    document.getElementById(b.dataset.tab).classList.add("active");
+  };
+});
+
+/* ===== Helpers ===== */
+const fmtDate = d => new Date(d).toLocaleString(undefined,{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+const bestImg = apod => apod.hdurl||apod.url||apod.thumbnail_url||null;
+function renderMedia(container, item){
+  container.innerHTML="";
+  if(!item){container.textContent="No media.";return;}
+  if(item.media_type==="video" || /youtube|vimeo|player/.test(item.url||"")){
+    const ifr=document.createElement("iframe");
+    ifr.src=item.url; ifr.allowFullscreen=true; ifr.loading="lazy"; ifr.style.aspectRatio="16/9";
+    container.appendChild(ifr);
+  } else {
+    const img=new Image(); img.loading="lazy"; img.alt=item.title||"image"; img.src=bestImg(item)||item.image||item.url;
+    container.appendChild(img);
+  }
+}
+function downloadURL(url, name){ const a=document.createElement("a"); a.href=url; a.download=(name||"download").replace(/[^a-z0-9\-_]+/gi,"_")+".jpg"; document.body.appendChild(a); a.click(); a.remove(); }
+
+/* ===== APOD (Daily + Random) ===== */
+async function apodFetch(params={}){
+  const u=new URL("https://api.nasa.gov/planetary/apod");
+  u.searchParams.set("api_key",NASA_KEY);
+  u.searchParams.set("thumbs","true");
+  Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
+  const r=await fetch(u);
+  if(!r.ok) throw new Error("APOD error: "+r.status);
+  return r.json();
+}
+const apodDailyMedia=document.getElementById("apodDailyMedia"),
+      apodDailyInfo=document.getElementById("apodDailyInfo"),
+      apodDailyTitle=document.getElementById("apodDailyTitle"),
+      apodDailyExpl=document.getElementById("apodDailyExpl");
+let apodDaily=null;
+async function loadAPODDaily(){
+  apodDailyInfo.textContent="Loading…"; apodDailyTitle.textContent=""; apodDailyExpl.textContent=""; apodDailyMedia.innerHTML="";
+  try{
+    const apod=await apodFetch();
+    apodDaily=apod;
+    renderMedia(apodDailyMedia, apod);
+    apodDailyInfo.textContent=`${fmtDate(apod.date)} • © NASA/APOD`;
+    apodDailyTitle.textContent=apod.title||"";
+    apodDailyExpl.textContent=apod.explanation||"";
+  }catch(e){ apodDailyInfo.textContent=e.message||"Failed"; }
+}
+document.getElementById("apodDailyRefresh").onclick=loadAPODDaily;
+document.getElementById("apodDailyOpen").onclick=()=>{const u=apodDaily && bestImg(apodDaily); if(!u) return alert("No image"); window.open(u,"_blank","noreferrer");};
+document.getElementById("apodDailyDL").onclick=()=>{const u=apodDaily && bestImg(apodDaily); if(!u) return alert("No image"); downloadURL(u, apodDaily.title||"apod");};
+
+const apodRndMedia=document.getElementById("apodRndMedia"),
+      apodRndInfo=document.getElementById("apodRndInfo"),
+      apodRndTitle=document.getElementById("apodRndTitle"),
+      apodRndExpl=document.getElementById("apodRndExpl");
+let apodRnd=null;
+async function rerollAPOD(){
+  apodRndInfo.textContent="Loading random…"; apodRndTitle.textContent=""; apodRndExpl.textContent=""; apodRndMedia.innerHTML="";
+  try{
+    const res=await apodFetch({count:1});
+    const apod=Array.isArray(res)?res[0]:res;
+    apodRnd=apod;
+    renderMedia(apodRndMedia, apod);
+    apodRndInfo.textContent=`${fmtDate(apod.date)} • © NASA/APOD`;
+    apodRndTitle.textContent=apod.title||"";
+    apodRndExpl.textContent=apod.explanation||"";
+  }catch(e){ apodRndInfo.textContent=e.message||"Failed"; }
+}
+document.getElementById("apodRndReroll").onclick=rerollAPOD;
+document.getElementById("apodRndOpen").onclick=()=>{const u=apodRnd && bestImg(apodRnd); if(!u) return alert("No image"); window.open(u,"_blank","noreferrer");};
+document.getElementById("apodRndDL").onclick=()=>{const u=apodRnd && bestImg(apodRnd); if(!u) return alert("No image"); downloadURL(u, apodRnd.title||"apod");};
+
+/* ===== Mars Rover Photos ===== */
+const marsMedia=document.getElementById("marsMedia"),
+      marsInfo=document.getElementById("marsInfo");
+async function loadMars(){
+  marsMedia.innerHTML=""; marsInfo.textContent="Loading…";
+  const rover=document.getElementById("rover").value.toLowerCase();
+  const sol=parseInt(document.getElementById("sol").value||"0",10);
+  const cam=document.getElementById("camera").value.trim();
+  const u=new URL("https://api.nasa.gov/mars-photos/api/v1/rovers/"+rover+"/photos");
+  u.searchParams.set("api_key",NASA_KEY);
+  u.searchParams.set("sol", String(sol));
+  if(cam) u.searchParams.set("camera", cam);
+  const r=await fetch(u);
+  if(!r.ok){ marsInfo.textContent="NASA Mars error: "+r.status; return; }
+  const data=await r.json();
+  if(!data.photos || !data.photos.length){ marsInfo.textContent="No photos for this combo. Try another sol/camera."; return; }
+  const pick=data.photos[Math.floor(Math.random()*data.photos.length)];
+  const img=new Image(); img.src=pick.img_src; img.alt="Mars photo";
+  marsMedia.appendChild(img);
+  marsInfo.textContent=`${pick.rover.name} • ${pick.camera.full_name} • Sol ${pick.sol} • ${pick.earth_date}`;
+}
+document.getElementById("marsLoad").onclick=loadMars;
+document.getElementById("marsPrev").onclick=()=>{const s=document.getElementById("sol"); s.value=Math.max(0, (parseInt(s.value||"0",10)-1)); loadMars();};
+document.getElementById("marsNext").onclick=()=>{const s=document.getElementById("sol"); s.value=(parseInt(s.value||"0",10)+1); loadMars();};
+
+/* ===== EPIC Earth ===== */
+const epicDate=document.getElementById("epicDate"),
+      epicMedia=document.getElementById("epicMedia"),
+      epicInfo=document.getElementById("epicInfo");
+let epicList=[], epicIdx=0;
+function isoToday(){ const t=new Date(); const y=t.getFullYear(),m=String(t.getMonth()+1).padStart(2,"0"),d=String(t.getDate()).padStart(2,"0"); return `${y}-${m}-${d}`; }
+epicDate.value = (()=>{ const t=new Date(); t.setDate(t.getDate()-1); return t.toISOString().slice(0,10); })();
+async function loadEPIC(){
+  epicMedia.innerHTML=""; epicInfo.textContent="Loading…";
+  const date=epicDate.value;
+  const u=`https://api.nasa.gov/EPIC/api/natural/date/${date}?api_key=${NASA_KEY}`;
+  const r=await fetch(u);
+  if(!r.ok){ epicInfo.textContent="EPIC error: "+r.status; return; }
+  epicList=await r.json();
+  if(!Array.isArray(epicList) || !epicList.length){ epicInfo.textContent="No images for that date."; return; }
+  epicIdx=0; renderEPIC();
+}
+function epicImageURL(rec){
+  const d=new Date(rec.date);
+  const yyyy=d.getFullYear(), mm=String(d.getMonth()+1).padStart(2,"0"), dd=String(d.getDate()).padStart(2,"0");
+  return `https://api.nasa.gov/EPIC/archive/natural/${yyyy}/${mm}/${dd}/png/${rec.image}.png?api_key=${NASA_KEY}`;
+}
+function renderEPIC(){
+  epicMedia.innerHTML="";
+  const rec=epicList[epicIdx];
+  const img=new Image(); img.loading="lazy"; img.src=epicImageURL(rec);
+  epicMedia.appendChild(img);
+  epicInfo.textContent=`${fmtDate(rec.date)} • Index ${epicIdx+1}/${epicList.length}`;
+}
+document.getElementById("epicLoad").onclick=loadEPIC;
+document.getElementById("epicPrev").onclick=()=>{ if(epicList.length){ epicIdx=(epicIdx-1+epicList.length)%epicList.length; renderEPIC(); } };
+document.getElementById("epicNext").onclick=()=>{ if(epicList.length){ epicIdx=(epicIdx+1)%epicList.length; renderEPIC(); } };
+
+/* ===== SpaceX ===== */
+const sxList=document.getElementById("sxList");
+async function sxFetch(path){ const r=await fetch("https://api.spacexdata.com/v4/"+path); if(!r.ok) throw new Error("SpaceX error: "+r.status); return r.json(); }
+function renderLaunchCard(launch){
+  const d=document.createElement("div");
+  const t=new Date(launch.date_utc);
+  d.innerHTML = `
+    <div class="row" style="justify-content:space-between"><strong>${launch.name}</strong><span class="meta">${t.toLocaleString()}</span></div>
+    <div class="meta">${launch.details || "No details yet."}</div>
+    ${launch.links?.webcast ? `<a class="btn ghost" href="${launch.links.webcast}" target="_blank" rel="noreferrer">Webcast</a>` : ""}
+  `;
+  sxList.appendChild(d);
+}
+document.getElementById("sxUpcoming").onclick=async()=>{
+  sxList.innerHTML=""; 
+  try{
+    const ups=await sxFetch("launches/upcoming");
+    ups.sort((a,b)=>new Date(a.date_utc)-new Date(b.date_utc));
+    ups.slice(0,5).forEach(renderLaunchCard);
+  }catch(e){ sxList.textContent=e.message; }
+};
+document.getElementById("sxLatest").onclick=async()=>{
+  sxList.innerHTML="";
+  try{
+    const latest=await sxFetch("launches/latest");
+    renderLaunchCard(latest);
+  }catch(e){ sxList.textContent=e.message; }
+};
+
+/* ===== Weather (Open-Meteo + OSM Geocoder) ===== */
+async function geocode(q){
+  const u=new URL("https://nominatim.openstreetmap.org/search");
+  u.searchParams.set("q", q); u.searchParams.set("format","json"); u.searchParams.set("limit","1");
+  const r=await fetch(u, {headers:{"Accept":"application/json"}});
+  if(!r.ok) throw new Error("Geocode error: "+r.status);
+  const arr=await r.json(); return arr[0]||null;
+}
+async function openMeteo(lat, lon){
+  const u=new URL("https://api.open-meteo.com/v1/forecast");
+  u.searchParams.set("latitude", lat); u.searchParams.set("longitude", lon);
+  u.searchParams.set("current_weather","true");
+  u.searchParams.set("hourly","temperature_2m");
+  const r=await fetch(u); if(!r.ok) throw new Error("Weather error: "+r.status);
+  return r.json();
+}
+document.getElementById("wxGo").onclick=async()=>{
+  const q=document.getElementById("wxQuery").value.trim()||"San Juan, PR";
+  const info=document.getElementById("wxInfo"), now=document.getElementById("wxNow"), hourly=document.getElementById("wxHourly");
+  info.textContent="Geocoding…"; now.textContent=""; hourly.textContent="";
+  try{
+    const g=await geocode(q);
+    if(!g){ info.textContent="No match."; return; }
+    info.textContent=`${g.display_name} (${parseFloat(g.lat).toFixed(3)}, ${parseFloat(g.lon).toFixed(3)})`;
+    const wx=await openMeteo(g.lat, g.lon);
+    if(wx.current_weather){
+      now.textContent = `Now: ${wx.current_weather.temperature}°C • Wind ${wx.current_weather.windspeed} km/h`;
     }
-  });
-  document.getElementById("useDemo").addEventListener("click", () => {
-    API_KEY = "DEMO_KEY";
-    localStorage.setItem(KEY_STORAGE, API_KEY);
-    keyLabel.textContent = API_KEY;
-    loadDaily();
-    rerollRandom();
-  });
-
-  // ---- Helpers ----
-  function fmtDate(d) {
-    const dt = (d && !isNaN(Date.parse(d))) ? new Date(d) : new Date();
-    return dt.toLocaleDateString(undefined, { year:'numeric', month:'long', day:'numeric' });
-  }
-  function bestImageUrl(apod) {
-    return apod.hdurl || apod.url || apod.thumbnail_url || null;
-  }
-  function renderMedia(apod, containerEl) {
-    containerEl.innerHTML = "";
-    if (apod.media_type === "image") {
-      const src = bestImageUrl(apod);
-      const img = new Image();
-      img.alt = apod.title || "APOD image";
-      img.loading = "lazy";
-      img.src = src;
-      containerEl.appendChild(img);
-    } else if (apod.media_type === "video") {
-      const canEmbed = /youtube|vimeo|player/.test(apod.url);
-      if (canEmbed) {
-        const iframe = document.createElement("iframe");
-        iframe.src = apod.url;
-        iframe.allowFullscreen = true;
-        iframe.loading = "lazy";
-        iframe.style.aspectRatio = "16/9";
-        containerEl.appendChild(iframe);
-      } else {
-        const link = document.createElement("a");
-        link.href = apod.url; link.target = "_blank"; link.rel = "noreferrer";
-        link.textContent = "Open APOD video";
-        containerEl.appendChild(link);
-        if (apod.thumbnail_url) {
-          const img = new Image();
-          img.src = apod.thumbnail_url; img.alt = "Video thumbnail";
-          img.style.marginTop = "8px";
-          containerEl.appendChild(img);
-        }
-      }
-    } else {
-      containerEl.textContent = "Unsupported media type.";
+    if(wx.hourly?.time && wx.hourly?.temperature_2m){
+      const last = wx.hourly.time.slice(0, 12).map((t,i)=>`${t.slice(11,16)}: ${wx.hourly.temperature_2m[i]}°C`);
+      hourly.textContent = "Next hours: " + last.join("  ·  ");
     }
-  }
-  async function fetchAPODToday() {
-    const url = new URL("https://api.nasa.gov/planetary/apod");
-    url.searchParams.set("api_key", API_KEY);
-    url.searchParams.set("thumbs", "true");
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("APOD fetch failed: " + res.status);
-    return res.json();
-  }
-  async function fetchAPODRandom() {
-    const url = new URL("https://api.nasa.gov/planetary/apod");
-    url.searchParams.set("api_key", API_KEY);
-    url.searchParams.set("thumbs", "true");
-    url.searchParams.set("count", "1");
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("APOD random fetch failed: " + res.status);
-    const arr = await res.json();
-    return Array.isArray(arr) ? arr[0] : arr;
-  }
+  }catch(e){ info.textContent = e.message; }
+};
 
-  // ---- DAILY PANEL ----
-  let dailyState = { apod: null };
-  async function loadDaily() {
-    const info = document.getElementById("dailyInfo");
-    const media = document.getElementById("dailyMedia");
-    const titleEl = document.getElementById("dailyTitle");
-    const explEl = document.getElementById("dailyExplanation");
-    info.textContent = "Loading today’s image…";
-    titleEl.textContent = ""; explEl.textContent = ""; media.innerHTML = "";
-    try {
-      const apod = await fetchAPODToday();
-      dailyState.apod = apod;
-      renderMedia(apod, media);
-      titleEl.textContent = apod.title || "Untitled";
-      explEl.textContent = apod.explanation || "";
-      info.textContent = `${fmtDate(apod.date)} • © NASA/APOD`;
-    } catch (e) {
-      info.textContent = "—";
-      titleEl.textContent = "Error loading APOD";
-      explEl.textContent = e.message;
-    }
-  }
-  document.getElementById("dailyRefresh").addEventListener("click", loadDaily);
-  document.getElementById("dailyOpenHD").addEventListener("click", () => {
-    const url = dailyState.apod && bestImageUrl(dailyState.apod);
-    if (!url) return alert("No image to open (this APOD may be a video).");
-    window.open(url, "_blank", "noreferrer");
-  });
-  document.getElementById("dailyDownload").addEventListener("click", () => {
-    const url = dailyState.apod && bestImageUrl(dailyState.apod);
-    if (!url) return alert("No downloadable image for this item.");
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = ((dailyState.apod.title || "apod") + ".jpg").replace(/[^a-z0-9\-]+/gi, "");
-    document.body.appendChild(a); a.click(); a.remove();
-  });
+/* ===== Unsplash Random ===== */
+let usPhoto=null;
+document.getElementById("usRandom").onclick=async()=>{
+  const q=document.getElementById("usQuery").value.trim()||"space";
+  const media=document.getElementById("usMedia"), info=document.getElementById("usInfo"), credit=document.getElementById("usCredit");
+  media.innerHTML=""; info.textContent="Loading…"; credit.textContent="";
+  if(!UNSPLASH_KEY){ info.textContent="Set Unsplash key first."; return; }
+  try{
+    const u=new URL("https://api.unsplash.com/photos/random");
+    u.searchParams.set("query", q); u.searchParams.set("orientation","landscape"); u.searchParams.set("client_id", UNSPLASH_KEY);
+    const r=await fetch(u); if(!r.ok) throw new Error("Unsplash error: "+r.status);
+    const p=await r.json(); usPhoto=p;
+    const img=new Image(); img.loading="lazy"; img.src=p.urls.regular; img.alt=p.alt_description||"Unsplash photo";
+    media.appendChild(img);
+    info.textContent = `“${(p.description||p.alt_description||"Untitled")}"`;
+    credit.innerHTML = `Photo by <a href="${p.user.links.html}?utm_source=SpaceHub&utm_medium=referral" target="_blank" rel="noreferrer">${p.user.name}</a> on Unsplash`;
+  }catch(e){ info.textContent=e.message; }
+};
+document.getElementById("usDL").onclick=()=>{ if(!usPhoto) return alert("No photo"); downloadURL(usPhoto.links.download||usPhoto.urls.full||usPhoto.urls.raw,"unsplash"); };
 
-  // ---- RANDOM PANEL ----
-  let randomState = { apod: null };
-  async function rerollRandom() {
-    const info = document.getElementById("randomInfo");
-    const media = document.getElementById("randomMedia");
-    const titleEl = document.getElementById("randomTitle");
-    const explEl = document.getElementById("randomExplanation");
-    info.textContent = "Loading random APOD…";
-    titleEl.textContent = ""; explEl.textContent = ""; media.innerHTML = "";
-    try {
-      const apod = await fetchAPODRandom();
-      randomState.apod = apod;
-      renderMedia(apod, media);
-      titleEl.textContent = apod.title || "Untitled";
-      explEl.textContent = apod.explanation || "";
-      info.textContent = `${fmtDate(apod.date)} • © NASA/APOD`;
-    } catch (e) {
-      info.textContent = "—";
-      titleEl.textContent = "Error loading random APOD";
-      explEl.textContent = e.message;
-    }
-  }
-  document.getElementById("randomReroll").addEventListener("click", rerollRandom);
-  document.getElementById("randomOpenHD").addEventListener("click", () => {
-    const url = randomState.apod && bestImageUrl(randomState.apod);
-    if (!url) return alert("No image to open (this APOD may be a video).");
-    window.open(url, "_blank", "noreferrer");
-  });
-  document.getElementById("randomDownload").addEventListener("click", () => {
-    const url = randomState.apod && bestImageUrl(randomState.apod);
-    if (!url) return alert("No downloadable image for this item.");
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = ((randomState.apod.title || "apod") + ".jpg").replace(/[^a-z0-9\-]+/gi, "");
-    document.body.appendChild(a); a.click(); a.remove();
-  });
-
-  // Initial loads
-  loadDaily();
-  rerollRandom();
+/* ===== Init ===== */
+loadAPODDaily(); rerollAPOD();
 </script>
 </body>
 </html>

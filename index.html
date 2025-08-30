@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NASA APOD — Daily & Random (Supercharged)</title>
+  <style>
+    :root { --bg:#0b1020; --panel:#121936; --accent:#7aa2f7; --text:#eaf0ff; --muted:#9fb0d1; --card: rgba(18,25,54,.65); --border: rgba(255,255,255,.12); --btnGhost: rgba(255,255,255,.18); }
+    [data-theme="light"] { --bg:#f5f7ff; --panel:#ffffff; --accent:#2563eb; --text:#0b1020; --muted:#50618a; --card:#ffffff; --border: rgba(11,16,32,.12); --btnGhost: rgba(11,16,32,.18); }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background: radial-gradient(1100px 700px at 20% -10%, #19244d 0%, var(--bg) 60%); color: var(--text); }
+    header { padding: 18px 22px; border-bottom: 1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    h1 { font-size: 22px; margin:0; display:flex; align-items:center; gap:10px; }
+    main { max-width:1200px; margin:0 auto; padding:18px; display:grid; gap:18px; }
+    .grid { display:grid; grid-template-columns:1fr; gap:18px; }
+    @media(min-width:1000px){ .grid{ grid-template-columns:1fr 1fr; } }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:0 8px 20px rgba(0,0,0,.3); overflow:hidden; }
+    .media { background:#000; display:flex; justify-content:center; align-items:center; }
+    img,iframe { max-width:100%; width:100%; height:auto; display:block; }
+    .content { padding:16px; display:grid; gap:10px; }
+    .title { font-size:20px; font-weight:700; margin:0; }
+    .meta { color:var(--muted); font-size:14px; }
+    .desc { font-size:15px; line-height:1.6; }
+    .toolbar { display:flex; gap:8px; flex-wrap:wrap; }
+    .btn { background:var(--accent); color:#fff; border:0; padding:8px 12px; border-radius:999px; cursor:pointer; font-weight:600; }
+    .btn.secondary { background:transparent; color:inherit; border:1px solid var(--border); }
+    .btn.ghost { background:transparent; border:1px dashed var(--btnGhost); }
+    .heart { cursor:pointer; font-size:18px; }
+    footer { text-align:center; font-size:12px; color:var(--muted); padding:20px 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🚀 NASA APOD — Daily & Random</h1>
+    <button id="themeToggle" class="btn secondary">Toggle Theme</button>
+  </header>
+
+  <main>
+    <div class="grid">
+      <!-- Daily -->
+      <section class="card">
+        <div id="dailyMedia" class="media"></div>
+        <div class="content">
+          <div class="toolbar">
+            <input type="date" id="dailyDate">
+            <button id="gotoToday" class="btn secondary">Today</button>
+            <button id="dailyRefresh" class="btn secondary">Refresh</button>
+            <button id="dailyFav" class="btn ghost"><span id="dailyHeart" class="heart">♡</span></button>
+          </div>
+          <div id="dailyInfo" class="meta"></div>
+          <h2 id="dailyTitle" class="title"></h2>
+          <div id="dailyExplanation" class="desc"></div>
+        </div>
+      </section>
+
+      <!-- Random -->
+      <section class="card">
+        <div id="randomMedia" class="media"></div>
+        <div class="content">
+          <div class="toolbar">
+            <button id="randomReroll" class="btn">Re-roll 🔄</button>
+            <button id="randomFav" class="btn ghost"><span id="randomHeart" class="heart">♡</span></button>
+          </div>
+          <div id="randomInfo" class="meta"></div>
+          <h2 id="randomTitle" class="title"></h2>
+          <div id="randomExplanation" class="desc"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>Data from NASA APOD API. DEMO_KEY works without signup.</footer>
+
+<script>
+  let API_KEY = "DEMO_KEY";
+  const dailyMedia=document.getElementById("dailyMedia"),
+        dailyTitle=document.getElementById("dailyTitle"),
+        dailyInfo=document.getElementById("dailyInfo"),
+        dailyExpl=document.getElementById("dailyExplanation"),
+        dailyDate=document.getElementById("dailyDate"),
+        dailyHeart=document.getElementById("dailyHeart");
+  const randomMedia=document.getElementById("randomMedia"),
+        randomTitle=document.getElementById("randomTitle"),
+        randomInfo=document.getElementById("randomInfo"),
+        randomExpl=document.getElementById("randomExplanation"),
+        randomHeart=document.getElementById("randomHeart");
+
+  function fmtDate(d){return new Date(d).toLocaleDateString();}
+  function renderMedia(apod,el){ el.innerHTML=""; if(apod.media_type==="image"){let img=new Image(); img.src=apod.url; el.appendChild(img);} else {let a=document.createElement("a"); a.href=apod.url; a.target="_blank"; a.textContent="View Video"; el.appendChild(a);} }
+  async function fetchAPOD(params={}){ const u=new URL("https://api.nasa.gov/planetary/apod"); u.searchParams.set("api_key",API_KEY); for(const[k,v]of Object.entries(params)) u.searchParams.set(k,v); const r=await fetch(u); return r.json(); }
+
+  async function loadDaily(){ const date=dailyDate.value; const apod=await fetchAPOD(date?{date}:{}); renderMedia(apod,dailyMedia); dailyTitle.textContent=apod.title; dailyExpl.textContent=apod.explanation; dailyInfo.textContent=fmtDate(apod.date); dailyState=apod; updateHearts();}
+  async function loadRandom(){ const apod=(await fetchAPOD({count:1}))[0]; renderMedia(apod,randomMedia); randomTitle.textContent=apod.title; randomExpl.textContent=apod.explanation; randomInfo.textContent=fmtDate(apod.date); randomState=apod; updateHearts(); }
+
+  let dailyState=null, randomState=null, favs=new Set();
+  function updateHearts(){ dailyHeart.textContent=dailyState&&favs.has(dailyState.date)?"♥":"♡"; randomHeart.textContent=randomState&&favs.has(randomState.date)?"♥":"♡"; }
+  document.getElementById("dailyRefresh").onclick=loadDaily;
+  document.getElementById("gotoToday").onclick=()=>{ dailyDate.value=new Date().toISOString().split("T")[0]; loadDaily(); };
+  document.getElementById("dailyFav").onclick=()=>{ if(dailyState){ if(favs.has(dailyState.date))favs.delete(dailyState.date); else favs.add(dailyState.date);} updateHearts(); };
+  document.getElementById("randomReroll").onclick=loadRandom;
+  document.getElementById("randomFav").onclick=()=>{ if(randomState){ if(favs.has(randomState.date))favs.delete(randomState.date); else favs.add(randomState.date);} updateHearts(); };
+
+  document.getElementById("themeToggle").onclick=()=>{ const cur=document.documentElement.getAttribute("data-theme"); document.documentElement.setAttribute("data-theme",cur==="dark"?"light":"dark"); };
+
+  dailyDate.value=new Date().toISOString().split("T")[0];
+  loadDaily(); loadRandom();
+</script>
+</body>
+</html>

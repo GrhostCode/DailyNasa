@@ -1,0 +1,56 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova Code Translator</title>
+  <style>
+    body { font-family: sans-serif; background: #121212; color: #eee; padding: 20px; }
+    textarea, input, button { width: 100%; margin: 10px 0; padding: 10px; border-radius: 10px; border: none; font-size: 16px; }
+    button { background-color: #00aaff; color: white; font-weight: bold; cursor: pointer; }
+    button:hover { background-color: #0077aa; }
+    .result-box { background: #1e1e1e; padding: 10px; border-radius: 10px; word-break: break-word; }
+  </style>
+</head>
+<body>
+  <h1>Nova Code Translator</h1>
+
+  <h3>Text to Nova Code</h3>
+  <textarea id="inputText" rows="4" placeholder="Enter text here..."></textarea>
+  <button onclick="encodeNova()">Translate to Nova Code</button>
+  <div class="result-box" id="encodedResult"></div>
+
+  <h3>Nova Code to Text</h3>
+  <textarea id="novaCodeInput" rows="4" placeholder="Enter Nova Code (using $ and #)..."></textarea>
+  <button onclick="decodeNova()">Translate to Text</button>
+  <div class="result-box" id="decodedResult"></div>
+
+  <script>
+    function encodeNova() {
+      const text = document.getElementById("inputText").value;
+      let result = "";
+      for (let i = 0; i < text.length; i++) {
+        let code = text.charCodeAt(i);
+        let binary = code.toString(2).padStart(5, '0');
+        let novaCode = binary.replace(/1/g, '$').replace(/0/g, '#');
+        result += novaCode + " ";
+      }
+      document.getElementById("encodedResult").innerText = result.trim();
+    }
+
+    function decodeNova() {
+      const code = document.getElementById("novaCodeInput").value.trim();
+      let result = "";
+      const parts = code.split(/\s+/);
+      for (let i = 0; i < parts.length; i++) {
+        let binary = parts[i].replace(/\$/g, '1').replace(/#/g, '0');
+        let charCode = parseInt(binary, 2);
+        let char = String.fromCharCode(charCode);
+        result += char;
+      }
+      document.getElementById("decodedResult").innerText = result;
+    }
+  </script>
+</body>
+</html>

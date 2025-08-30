@@ -1,67 +1,105 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NASA APOD — Daily & Random (Supercharged)</title>
+  <title>NASA APOD — Daily & Random</title>
   <style>
-    :root { --bg:#0b1020; --panel:#121936; --accent:#7aa2f7; --text:#eaf0ff; --muted:#9fb0d1; --card: rgba(18,25,54,.65); --border: rgba(255,255,255,.12); --btnGhost: rgba(255,255,255,.18); }
-    [data-theme="light"] { --bg:#f5f7ff; --panel:#ffffff; --accent:#2563eb; --text:#0b1020; --muted:#50618a; --card:#ffffff; --border: rgba(11,16,32,.12); --btnGhost: rgba(11,16,32,.18); }
+    :root { --bg:#0b1020; --panel:#121936; --accent:#7aa2f7; --text:#eaf0ff; --muted:#9fb0d1; --card: rgba(18,25,54,.65); }
     * { box-sizing: border-box; }
-    html, body { height: 100%; margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background: radial-gradient(1100px 700px at 20% -10%, #19244d 0%, var(--bg) 60%); color: var(--text); }
-    header { padding: 18px 22px; border-bottom: 1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; }
-    h1 { font-size: 22px; margin:0; display:flex; align-items:center; gap:10px; }
-    main { max-width:1200px; margin:0 auto; padding:18px; display:grid; gap:18px; }
-    .grid { display:grid; grid-template-columns:1fr; gap:18px; }
-    @media(min-width:1000px){ .grid{ grid-template-columns:1fr 1fr; } }
-    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:0 8px 20px rgba(0,0,0,.3); overflow:hidden; }
-    .media { background:#000; display:flex; justify-content:center; align-items:center; }
-    img,iframe { max-width:100%; width:100%; height:auto; display:block; }
-    .content { padding:16px; display:grid; gap:10px; }
-    .title { font-size:20px; font-weight:700; margin:0; }
-    .meta { color:var(--muted); font-size:14px; }
-    .desc { font-size:15px; line-height:1.6; }
-    .toolbar { display:flex; gap:8px; flex-wrap:wrap; }
-    .btn { background:var(--accent); color:#fff; border:0; padding:8px 12px; border-radius:999px; cursor:pointer; font-weight:600; }
-    .btn.secondary { background:transparent; color:inherit; border:1px solid var(--border); }
-    .btn.ghost { background:transparent; border:1px dashed var(--btnGhost); }
-    .heart { cursor:pointer; font-size:18px; }
-    footer { text-align:center; font-size:12px; color:var(--muted); padding:20px 0; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      background: radial-gradient(1100px 700px at 20% -10%, #19244d 0%, #0b1020 60%);
+      color: var(--text);
+    }
+    header {
+      padding: 18px 22px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    }
+    h1 { font-size: clamp(20px, 4vw, 28px); margin: 0; }
+    main { max-width: 1200px; margin: 0 auto; padding: 18px; display: grid; gap: 18px; }
+    .grid { display:grid; grid-template-columns: 1fr; gap:18px; }
+    @media (min-width: 1024px) { .grid { grid-template-columns: 1fr 1fr; } }
+    .card {
+      background: var(--card); border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      display:flex; flex-direction:column;
+    }
+    .media { display:flex; align-items:center; justify-content:center; background:#070b18; }
+    img, iframe { max-width: 100%; width: 100%; height: auto; display:block; }
+    .content { padding: 16px; display:grid; gap:10px; }
+    .title { font-weight: 800; font-size: 22px; margin: 0; }
+    .meta  { color: var(--muted); font-size: 14px; }
+    .desc  { line-height: 1.65; font-size: 16px; color:#e7ecff; }
+    .toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .row-between { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+    .btn { background: var(--accent); color:#071024; border:0; border-radius: 999px; padding:10px 14px; cursor:pointer; font-weight:700; }
+    .btn.secondary { background: #141b36; color: var(--text); border:1px solid rgba(255,255,255,.12); }
+    .btn.ghost { background: transparent; color: var(--text); border:1px dashed rgba(255,255,255,.18); }
+    .key { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#0f1631; padding:2px 6px; border-radius:6px; border:1px solid rgba(255,255,255,.08); }
+    a { color: #93c5fd; }
+    footer { text-align:center; color:var(--muted); font-size:12px; padding: 10px 0 20px; }
+    .small { font-size: 12px; color: var(--muted); }
+    .pill { padding:2px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.12); font-size:12px; }
   </style>
 </head>
 <body>
   <header>
-    <h1>🚀 NASA APOD — Daily & Random</h1>
-    <button id="themeToggle" class="btn secondary">Toggle Theme</button>
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 2l1.76 5.41h5.69l-4.6 3.34 1.76 5.41L12 12.82 7.39 16.16l1.76-5.41-4.6-3.34h5.69L12 2z" fill="#ffd166"/>
+    </svg>
+    <h1>NASA Astronomy Picture of the Day — Daily & Random</h1>
   </header>
 
   <main>
+    <section class="card" style="padding: 14px;">
+      <div class="row-between">
+        <div class="toolbar">
+          <span>API key: <span id="keyLabel" class="key">DEMO_KEY</span></span>
+          <span class="pill">No card needed</span>
+        </div>
+        <div class="toolbar">
+          <button id="setKey" class="btn">Set my NASA key</button>
+          <button id="useDemo" class="btn secondary">Use DEMO_KEY</button>
+          <a class="btn ghost" href="https://api.nasa.gov/" target="_blank" rel="noreferrer">Get a free key</a>
+        </div>
+      </div>
+      <p class="small" style="margin:6px 2px 0;">Your key is stored in your browser only (localStorage). If you leave it as DEMO_KEY, it still works for light personal use.</p>
+    </section>
+
     <div class="grid">
-      <!-- Daily -->
-      <section class="card">
-        <div id="dailyMedia" class="media"></div>
+      <!-- DAILY APOD PANEL -->
+      <section class="card" id="dailyCard">
+        <div id="dailyMedia" class="media" aria-live="polite"></div>
         <div class="content">
-          <div class="toolbar">
-            <input type="date" id="dailyDate">
-            <button id="gotoToday" class="btn secondary">Today</button>
-            <button id="dailyRefresh" class="btn secondary">Refresh</button>
-            <button id="dailyFav" class="btn ghost"><span id="dailyHeart" class="heart">♡</span></button>
+          <div class="row-between">
+            <div id="dailyInfo" class="meta">Loading today’s image…</div>
+            <div class="toolbar">
+              <button id="dailyRefresh" class="btn secondary" title="Refetch today">Refresh</button>
+              <button id="dailyOpenHD" class="btn ghost" title="Open HD image in a new tab">Open HD</button>
+              <button id="dailyDownload" class="btn ghost" title="Download the image if available">Download</button>
+            </div>
           </div>
-          <div id="dailyInfo" class="meta"></div>
           <h2 id="dailyTitle" class="title"></h2>
           <div id="dailyExplanation" class="desc"></div>
         </div>
       </section>
 
-      <!-- Random -->
-      <section class="card">
-        <div id="randomMedia" class="media"></div>
+      <!-- RANDOM APOD PANEL -->
+      <section class="card" id="randomCard">
+        <div id="randomMedia" class="media" aria-live="polite"></div>
         <div class="content">
-          <div class="toolbar">
-            <button id="randomReroll" class="btn">Re-roll 🔄</button>
-            <button id="randomFav" class="btn ghost"><span id="randomHeart" class="heart">♡</span></button>
+          <div class="row-between">
+            <div id="randomInfo" class="meta">Click “Re-roll” to get a random APOD.</div>
+            <div class="toolbar">
+              <button id="randomReroll" class="btn" title="Get a random APOD">Re-roll 🔄</button>
+              <button id="randomOpenHD" class="btn ghost" title="Open HD image in a new tab">Open HD</button>
+              <button id="randomDownload" class="btn ghost" title="Download the image if available">Download</button>
+            </div>
           </div>
-          <div id="randomInfo" class="meta"></div>
           <h2 id="randomTitle" class="title"></h2>
           <div id="randomExplanation" class="desc"></div>
         </div>
@@ -69,41 +107,172 @@
     </div>
   </main>
 
-  <footer>Data from NASA APOD API. DEMO_KEY works without signup.</footer>
+  <footer>Data courtesy of NASA APOD. Some entries are videos; we embed when possible or show a link/thumbnail.</footer>
 
 <script>
-  let API_KEY = "DEMO_KEY";
-  const dailyMedia=document.getElementById("dailyMedia"),
-        dailyTitle=document.getElementById("dailyTitle"),
-        dailyInfo=document.getElementById("dailyInfo"),
-        dailyExpl=document.getElementById("dailyExplanation"),
-        dailyDate=document.getElementById("dailyDate"),
-        dailyHeart=document.getElementById("dailyHeart");
-  const randomMedia=document.getElementById("randomMedia"),
-        randomTitle=document.getElementById("randomTitle"),
-        randomInfo=document.getElementById("randomInfo"),
-        randomExpl=document.getElementById("randomExplanation"),
-        randomHeart=document.getElementById("randomHeart");
+  // ---- Key management ----
+  const KEY_STORAGE = "nasa_api_key";
+  let API_KEY = localStorage.getItem(KEY_STORAGE) || "DEMO_KEY";
+  const keyLabel = document.getElementById("keyLabel");
+  keyLabel.textContent = API_KEY;
 
-  function fmtDate(d){return new Date(d).toLocaleDateString();}
-  function renderMedia(apod,el){ el.innerHTML=""; if(apod.media_type==="image"){let img=new Image(); img.src=apod.url; el.appendChild(img);} else {let a=document.createElement("a"); a.href=apod.url; a.target="_blank"; a.textContent="View Video"; el.appendChild(a);} }
-  async function fetchAPOD(params={}){ const u=new URL("https://api.nasa.gov/planetary/apod"); u.searchParams.set("api_key",API_KEY); for(const[k,v]of Object.entries(params)) u.searchParams.set(k,v); const r=await fetch(u); return r.json(); }
+  document.getElementById("setKey").addEventListener("click", () => {
+    const v = prompt("Paste your NASA API key (or leave blank to cancel):", API_KEY === "DEMO_KEY" ? "" : API_KEY);
+    if (v && v.trim()) {
+      API_KEY = v.trim();
+      localStorage.setItem(KEY_STORAGE, API_KEY);
+      keyLabel.textContent = API_KEY;
+      // Reload both panels with the new key
+      loadDaily();
+      rerollRandom();
+    }
+  });
+  document.getElementById("useDemo").addEventListener("click", () => {
+    API_KEY = "DEMO_KEY";
+    localStorage.setItem(KEY_STORAGE, API_KEY);
+    keyLabel.textContent = API_KEY;
+    loadDaily();
+    rerollRandom();
+  });
 
-  async function loadDaily(){ const date=dailyDate.value; const apod=await fetchAPOD(date?{date}:{}); renderMedia(apod,dailyMedia); dailyTitle.textContent=apod.title; dailyExpl.textContent=apod.explanation; dailyInfo.textContent=fmtDate(apod.date); dailyState=apod; updateHearts();}
-  async function loadRandom(){ const apod=(await fetchAPOD({count:1}))[0]; renderMedia(apod,randomMedia); randomTitle.textContent=apod.title; randomExpl.textContent=apod.explanation; randomInfo.textContent=fmtDate(apod.date); randomState=apod; updateHearts(); }
+  // ---- Helpers ----
+  function fmtDate(d) {
+    const dt = (d && !isNaN(Date.parse(d))) ? new Date(d) : new Date();
+    return dt.toLocaleDateString(undefined, { year:'numeric', month:'long', day:'numeric' });
+  }
+  function bestImageUrl(apod) {
+    return apod.hdurl || apod.url || apod.thumbnail_url || null;
+  }
+  function renderMedia(apod, containerEl) {
+    containerEl.innerHTML = "";
+    if (apod.media_type === "image") {
+      const src = bestImageUrl(apod);
+      const img = new Image();
+      img.alt = apod.title || "APOD image";
+      img.loading = "lazy";
+      img.src = src;
+      containerEl.appendChild(img);
+    } else if (apod.media_type === "video") {
+      const canEmbed = /youtube|vimeo|player/.test(apod.url);
+      if (canEmbed) {
+        const iframe = document.createElement("iframe");
+        iframe.src = apod.url;
+        iframe.allowFullscreen = true;
+        iframe.loading = "lazy";
+        iframe.style.aspectRatio = "16/9";
+        containerEl.appendChild(iframe);
+      } else {
+        const link = document.createElement("a");
+        link.href = apod.url; link.target = "_blank"; link.rel = "noreferrer";
+        link.textContent = "Open APOD video";
+        containerEl.appendChild(link);
+        if (apod.thumbnail_url) {
+          const img = new Image();
+          img.src = apod.thumbnail_url; img.alt = "Video thumbnail";
+          img.style.marginTop = "8px";
+          containerEl.appendChild(img);
+        }
+      }
+    } else {
+      containerEl.textContent = "Unsupported media type.";
+    }
+  }
+  async function fetchAPODToday() {
+    const url = new URL("https://api.nasa.gov/planetary/apod");
+    url.searchParams.set("api_key", API_KEY);
+    url.searchParams.set("thumbs", "true");
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("APOD fetch failed: " + res.status);
+    return res.json();
+  }
+  async function fetchAPODRandom() {
+    const url = new URL("https://api.nasa.gov/planetary/apod");
+    url.searchParams.set("api_key", API_KEY);
+    url.searchParams.set("thumbs", "true");
+    url.searchParams.set("count", "1");
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("APOD random fetch failed: " + res.status);
+    const arr = await res.json();
+    return Array.isArray(arr) ? arr[0] : arr;
+  }
 
-  let dailyState=null, randomState=null, favs=new Set();
-  function updateHearts(){ dailyHeart.textContent=dailyState&&favs.has(dailyState.date)?"♥":"♡"; randomHeart.textContent=randomState&&favs.has(randomState.date)?"♥":"♡"; }
-  document.getElementById("dailyRefresh").onclick=loadDaily;
-  document.getElementById("gotoToday").onclick=()=>{ dailyDate.value=new Date().toISOString().split("T")[0]; loadDaily(); };
-  document.getElementById("dailyFav").onclick=()=>{ if(dailyState){ if(favs.has(dailyState.date))favs.delete(dailyState.date); else favs.add(dailyState.date);} updateHearts(); };
-  document.getElementById("randomReroll").onclick=loadRandom;
-  document.getElementById("randomFav").onclick=()=>{ if(randomState){ if(favs.has(randomState.date))favs.delete(randomState.date); else favs.add(randomState.date);} updateHearts(); };
+  // ---- DAILY PANEL ----
+  let dailyState = { apod: null };
+  async function loadDaily() {
+    const info = document.getElementById("dailyInfo");
+    const media = document.getElementById("dailyMedia");
+    const titleEl = document.getElementById("dailyTitle");
+    const explEl = document.getElementById("dailyExplanation");
+    info.textContent = "Loading today’s image…";
+    titleEl.textContent = ""; explEl.textContent = ""; media.innerHTML = "";
+    try {
+      const apod = await fetchAPODToday();
+      dailyState.apod = apod;
+      renderMedia(apod, media);
+      titleEl.textContent = apod.title || "Untitled";
+      explEl.textContent = apod.explanation || "";
+      info.textContent = ${fmtDate(apod.date)} • © NASA/APOD;
+    } catch (e) {
+      info.textContent = "—";
+      titleEl.textContent = "Error loading APOD";
+      explEl.textContent = e.message;
+    }
+  }
+  document.getElementById("dailyRefresh").addEventListener("click", loadDaily);
+  document.getElementById("dailyOpenHD").addEventListener("click", () => {
+    const url = dailyState.apod && bestImageUrl(dailyState.apod);
+    if (!url) return alert("No image to open (this APOD may be a video).");
+    window.open(url, "_blank", "noreferrer");
+  });
+  document.getElementById("dailyDownload").addEventListener("click", () => {
+    const url = dailyState.apod && bestImageUrl(dailyState.apod);
+    if (!url) return alert("No downloadable image for this item.");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = ((dailyState.apod.title || "apod") + ".jpg").replace(/[^a-z0-9\-]+/gi, "");
+    document.body.appendChild(a); a.click(); a.remove();
+  });
 
-  document.getElementById("themeToggle").onclick=()=>{ const cur=document.documentElement.getAttribute("data-theme"); document.documentElement.setAttribute("data-theme",cur==="dark"?"light":"dark"); };
+  // ---- RANDOM PANEL ----
+  let randomState = { apod: null };
+  async function rerollRandom() {
+    const info = document.getElementById("randomInfo");
+    const media = document.getElementById("randomMedia");
+    const titleEl = document.getElementById("randomTitle");
+    const explEl = document.getElementById("randomExplanation");
+    info.textContent = "Loading random APOD…";
+    titleEl.textContent = ""; explEl.textContent = ""; media.innerHTML = "";
+    try {
+      const apod = await fetchAPODRandom();
+      randomState.apod = apod;
+      renderMedia(apod, media);
+      titleEl.textContent = apod.title || "Untitled";
+      explEl.textContent = apod.explanation || "";
+      info.textContent = ${fmtDate(apod.date)} • © NASA/APOD;
+    } catch (e) {
+      info.textContent = "—";
+      titleEl.textContent = "Error loading random APOD";
+      explEl.textContent = e.message;
+    }
+  }
+  document.getElementById("randomReroll").addEventListener("click", rerollRandom);
+  document.getElementById("randomOpenHD").addEventListener("click", () => {
+    const url = randomState.apod && bestImageUrl(randomState.apod);
+    if (!url) return alert("No image to open (this APOD may be a video).");
+    window.open(url, "_blank", "noreferrer");
+  });
+  document.getElementById("randomDownload").addEventListener("click", () => {
+    const url = randomState.apod && bestImageUrl(randomState.apod);
+    if (!url) return alert("No downloadable image for this item.");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = ((randomState.apod.title || "apod") + ".jpg").replace(/[^a-z0-9\-]+/gi, "");
+    document.body.appendChild(a); a.click(); a.remove();
+  });
 
-  dailyDate.value=new Date().toISOString().split("T")[0];
-  loadDaily(); loadRandom();
+  // Initial loads
+  loadDaily();
+  rerollRandom();
 </script>
 </body>
 </html>

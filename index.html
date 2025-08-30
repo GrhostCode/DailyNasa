@@ -3,14 +3,10 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Space Hub — NASA + SpaceX + Weather</title>
+<title>Space Hub — NASA + SpaceX + Weather + Accounts</title>
 <style>
-  :root{
-    --bg:#0b1020;--card:#121936cc;--text:#eaf0ff;--muted:#9fb0d1;--accent:#7aa2f7;--border:#ffffff1e;
-  }
-  [data-theme="light"]{
-    --bg:#f5f7ff;--card:#ffffff;--text:#0b1020;--muted:#4b5b86;--accent:#2563eb;--border:#0b10202a;
-  }
+  :root{--bg:#0b1020;--card:#121936cc;--text:#eaf0ff;--muted:#9fb0d1;--accent:#7aa2f7;--border:#ffffff1e}
+  [data-theme="light"]{--bg:#f5f7ff;--card:#ffffff;--text:#0b1020;--muted:#4b5b86;--accent:#2563eb;--border:#0b10202a}
   *{box-sizing:border-box}
   html,body{height:100%}
   body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:radial-gradient(1000px 600px at 20% -10%,#19244d 0%,var(--bg) 60%);color:var(--text)}
@@ -39,8 +35,11 @@
   input,select{padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:inherit}
   label{display:flex;gap:6px;align-items:center}
   .key{font-family:ui-monospace,Menlo,Consolas,monospace;padding:2px 6px;border-radius:6px;border:1px solid var(--border)}
-  .list{padding:12px}
-  .list > div{padding:10px;border:1px solid var(--border);border-radius:12px;margin-bottom:10px}
+  .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+  .thumb{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#070b18}
+  [data-theme="light"] .thumb{background:#e9eefc}
+  .thumb img{width:100%;height:100px;object-fit:cover;display:block}
+  .thumb .label{padding:8px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   footer{color:var(--muted);text-align:center;font-size:12px;padding:10px 0 20px}
 </style>
 </head>
@@ -54,8 +53,19 @@
 </header>
 
 <main>
-  <!-- Keys -->
+  <!-- Account + Keys card -->
   <section class="card" style="padding:12px">
+    <div class="row" style="justify-content:space-between">
+      <div class="row">
+        <strong id="acctStatus">Not signed in</strong>
+        <span class="pill">Accounts by Firebase (no backend code)</span>
+      </div>
+      <div class="row">
+        <button id="signIn" class="btn">Sign in with Google</button>
+        <button id="signOut" class="btn secondary" style="display:none">Sign out</button>
+      </div>
+    </div>
+    <hr style="border-color:var(--border);opacity:.3">
     <div class="row" style="justify-content:space-between">
       <div class="row">
         <span>NASA key: <span id="nasaKeyLbl" class="key">DEMO_KEY</span></span>
@@ -72,7 +82,7 @@
       <button id="setUnsplashKey" class="btn secondary">Set Unsplash key</button>
       <a class="btn ghost" href="https://unsplash.com/developers" target="_blank" rel="noreferrer">Get Unsplash key</a>
     </div>
-    <p class="meta" style="margin:6px 2px 0">Keys are stored locally in your browser.</p>
+    <p class="meta" style="margin:6px 2px 0">Keys & favorites are saved to your account when signed in; otherwise stored locally in your browser.</p>
   </section>
 
   <!-- Tabs -->
@@ -83,6 +93,7 @@
     <button class="tab" data-tab="spacex">SpaceX</button>
     <button class="tab" data-tab="weather">Weather</button>
     <button class="tab" data-tab="unsplash">Unsplash</button>
+    <button class="tab" data-tab="account">Account</button>
   </div>
 
   <!-- APOD -->
@@ -96,6 +107,7 @@
             <div id="apodDailyInfo" class="meta">Loading today…</div>
             <div class="row">
               <button id="apodDailyRefresh" class="btn secondary">Refresh</button>
+              <button id="apodDailyFav" class="btn ghost">♡ Favorite</button>
               <button id="apodDailyOpen" class="btn ghost">Open HD</button>
               <button id="apodDailyDL" class="btn ghost">Download</button>
             </div>
@@ -113,6 +125,7 @@
             <div id="apodRndInfo" class="meta">Click Re-roll</div>
             <div class="row">
               <button id="apodRndReroll" class="btn">Re-roll 🔄</button>
+              <button id="apodRndFav" class="btn ghost">♡ Favorite</button>
               <button id="apodRndOpen" class="btn ghost">Open HD</button>
               <button id="apodRndDL" class="btn ghost">Download</button>
             </div>
@@ -122,6 +135,21 @@
         </div>
       </section>
     </div>
+
+    <!-- Favorites gallery -->
+    <section class="card" style="margin-top:14px;padding:14px">
+      <div class="row" style="justify-content:space-between">
+        <h3 class="title" style="margin:0">⭐ Favorites</h3>
+        <div class="row">
+          <button id="favExport" class="btn secondary">Export JSON</button>
+          <button id="favImport" class="btn ghost">Import JSON</button>
+          <button id="favClear" class="btn ghost">Clear All</button>
+          <button id="favSync" class="btn">Sync Now</button>
+        </div>
+      </div>
+      <div id="favGrid" class="gallery" style="margin-top:10px"></div>
+      <p class="meta">Favorites are saved to your account when signed in, else locally.</p>
+    </section>
   </section>
 
   <!-- Mars Rover -->
@@ -169,7 +197,7 @@
           <label>Date <input type="date" id="epicDate"/></label>
           <button id="epicLoad" class="btn">Load</button>
         </div>
-        <div id="epicInfo" class="meta">Pick a date with images (many days have several).</div>
+        <div id="epicInfo" class="meta">Pick a date with images.</div>
       </div>
       <div id="epicMedia" class="media"></div>
       <div class="content">
@@ -190,7 +218,7 @@
           <button id="sxLatest" class="btn secondary">Latest Launch</button>
         </div>
       </div>
-      <div class="list" id="sxList"></div>
+      <div class="content" id="sxList"></div>
     </section>
   </section>
 
@@ -220,7 +248,7 @@
           <button id="usRandom" class="btn">Random Photo</button>
           <button id="usDL" class="btn secondary">Download</button>
         </div>
-        <div id="usInfo" class="meta">Requires Unsplash access key (free). Set it at the top.</div>
+        <div id="usInfo" class="meta">Requires Unsplash access key (free). Set it above.</div>
       </div>
       <div id="usMedia" class="media"></div>
       <div class="content">
@@ -228,29 +256,30 @@
       </div>
     </section>
   </section>
+
+  <!-- Account tab -->
+  <section id="account" class="panel">
+    <section class="card">
+      <div class="content">
+        <h3 class="title" style="margin:0">Account</h3>
+        <div class="meta" id="acctDetail">Sign in to sync keys & favorites across devices.</div>
+      </div>
+    </section>
+  </section>
 </main>
 
-<footer>Data courtesy of NASA, SpaceX, Open-Meteo, OpenStreetMap, Unsplash. Keys stored locally.</footer>
+<footer>Data: NASA, SpaceX, Open-Meteo, OSM, Unsplash. Auth & DB: Firebase (free tier).</footer>
 
-<script>
-/* ===== Theme ===== */
+<!-- Firebase (modular) + app code -->
+<script type="module">
+/*** THEME ***/
 const themeKey="spacehub_theme";
 const themeState=document.getElementById("themeState");
 function setTheme(t){document.documentElement.setAttribute("data-theme",t); localStorage.setItem(themeKey,t); themeState.textContent=t[0].toUpperCase()+t.slice(1);}
 setTheme(localStorage.getItem(themeKey)||"dark");
 document.getElementById("toggleTheme").onclick=()=>setTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark");
 
-/* ===== Keys ===== */
-const NASA_KEY_STORE="nasa_api_key", UNSPLASH_KEY_STORE="unsplash_api_key";
-let NASA_KEY=localStorage.getItem(NASA_KEY_STORE)||"DEMO_KEY";
-let UNSPLASH_KEY=localStorage.getItem(UNSPLASH_KEY_STORE)||"";
-document.getElementById("nasaKeyLbl").textContent=NASA_KEY;
-document.getElementById("unsplashKeyLbl").textContent=UNSPLASH_KEY||"unset";
-document.getElementById("setNasaKey").onclick=()=>{const v=prompt("Enter NASA API key:", NASA_KEY==="DEMO_KEY"?"":NASA_KEY); if(v&&v.trim()){NASA_KEY=v.trim(); localStorage.setItem(NASA_KEY_STORE,NASA_KEY); document.getElementById("nasaKeyLbl").textContent=NASA_KEY; loadAPODDaily(); rerollAPOD(); }};
-document.getElementById("useDemo").onclick=()=>{NASA_KEY="DEMO_KEY"; localStorage.setItem(NASA_KEY_STORE,NASA_KEY); document.getElementById("nasaKeyLbl").textContent=NASA_KEY; loadAPODDaily(); rerollAPOD(); };
-document.getElementById("setUnsplashKey").onclick=()=>{const v=prompt("Enter Unsplash access key:", UNSPLASH_KEY||""); if(v&&v.trim()){UNSPLASH_KEY=v.trim(); localStorage.setItem(UNSPLASH_KEY_STORE,UNSPLASH_KEY); document.getElementById("unsplashKeyLbl").textContent=UNSPLASH_KEY;}};
-
-/* ===== Tabs ===== */
+/*** TABS ***/
 document.querySelectorAll(".tab").forEach(b=>{
   b.onclick=()=>{
     document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
@@ -260,8 +289,40 @@ document.querySelectorAll(".tab").forEach(b=>{
   };
 });
 
-/* ===== Helpers ===== */
-const fmtDate = d => new Date(d).toLocaleString(undefined,{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+/*** LOCAL STORAGE FALLBACK ***/
+const LS = {
+  nasaKey: ()=>localStorage.getItem("nasa_api_key")||"DEMO_KEY",
+  setNasaKey: v=>localStorage.setItem("nasa_api_key", v),
+  unsplashKey: ()=>localStorage.getItem("unsplash_api_key")||"",
+  setUnsplashKey: v=>localStorage.setItem("unsplash_api_key", v),
+  favs: ()=>JSON.parse(localStorage.getItem("apod_favs_v1")||"[]"),
+  setFavs: arr=>localStorage.setItem("apod_favs_v1", JSON.stringify(arr)),
+};
+
+/*** STATE ***/
+let NASA_KEY = LS.nasaKey();
+let UNSPLASH_KEY = LS.unsplashKey();
+let FAVS = LS.favs(); // [{date,title,media_type,url,hdurl,thumbnail_url}]
+let USER = null;
+
+/*** UI: KEYS ***/
+const nasaKeyLbl=document.getElementById("nasaKeyLbl");
+const unsplashKeyLbl=document.getElementById("unsplashKeyLbl");
+nasaKeyLbl.textContent = NASA_KEY;
+unsplashKeyLbl.textContent = UNSPLASH_KEY || "unset";
+document.getElementById("setNasaKey").onclick=()=>{ const v=prompt("Enter NASA API key:", NASA_KEY==="DEMO_KEY"?"":NASA_KEY); if(v&&v.trim()){NASA_KEY=v.trim(); LS.setNasaKey(NASA_KEY); nasaKeyLbl.textContent=NASA_KEY; loadAPODDaily(); rerollAPOD(); saveProfile(); }};
+document.getElementById("useDemo").onclick=()=>{ NASA_KEY="DEMO_KEY"; LS.setNasaKey(NASA_KEY); nasaKeyLbl.textContent=NASA_KEY; loadAPODDaily(); rerollAPOD(); saveProfile(); };
+document.getElementById("setUnsplashKey").onclick=()=>{ const v=prompt("Enter Unsplash access key:", UNSPLASH_KEY||""); if(v&&v.trim()){UNSPLASH_KEY=v.trim(); LS.setUnsplashKey(UNSPLASH_KEY); unsplashKeyLbl.textContent=UNSPLASH_KEY; saveProfile(); }};
+// Auto-hide Unsplash tab if no key
+function refreshUnsplashVisibility(){
+  const tab=document.querySelector('.tab[data-tab="unsplash"]');
+  const panel=document.getElementById('unsplash');
+  if(!UNSPLASH_KEY){ tab?.classList.add('hidden'); panel?.classList.add('hidden'); } else { tab?.classList.remove('hidden'); panel?.classList.remove('hidden'); }
+}
+refreshUnsplashVisibility();
+
+/*** HELPERS ***/
+const fmtDate = d => new Date(d).toLocaleString(undefined,{year:'numeric',month:'long',day:'numeric'});
 const bestImg = apod => apod.hdurl||apod.url||apod.thumbnail_url||null;
 function renderMedia(container, item){
   container.innerHTML="";
@@ -277,7 +338,7 @@ function renderMedia(container, item){
 }
 function downloadURL(url, name){ const a=document.createElement("a"); a.href=url; a.download=(name||"download").replace(/[^a-z0-9\-_]+/gi,"_")+".jpg"; document.body.appendChild(a); a.click(); a.remove(); }
 
-/* ===== APOD (Daily + Random) ===== */
+/*** APOD (Daily + Random + Favorites) ***/
 async function apodFetch(params={}){
   const u=new URL("https://api.nasa.gov/planetary/apod");
   u.searchParams.set("api_key",NASA_KEY);
@@ -306,6 +367,7 @@ async function loadAPODDaily(){
 document.getElementById("apodDailyRefresh").onclick=loadAPODDaily;
 document.getElementById("apodDailyOpen").onclick=()=>{const u=apodDaily && bestImg(apodDaily); if(!u) return alert("No image"); window.open(u,"_blank","noreferrer");};
 document.getElementById("apodDailyDL").onclick=()=>{const u=apodDaily && bestImg(apodDaily); if(!u) return alert("No image"); downloadURL(u, apodDaily.title||"apod");};
+document.getElementById("apodDailyFav").onclick=()=>{ if(apodDaily) toggleFav(apodDaily); };
 
 const apodRndMedia=document.getElementById("apodRndMedia"),
       apodRndInfo=document.getElementById("apodRndInfo"),
@@ -327,8 +389,34 @@ async function rerollAPOD(){
 document.getElementById("apodRndReroll").onclick=rerollAPOD;
 document.getElementById("apodRndOpen").onclick=()=>{const u=apodRnd && bestImg(apodRnd); if(!u) return alert("No image"); window.open(u,"_blank","noreferrer");};
 document.getElementById("apodRndDL").onclick=()=>{const u=apodRnd && bestImg(apodRnd); if(!u) return alert("No image"); downloadURL(u, apodRnd.title||"apod");};
+document.getElementById("apodRndFav").onclick=()=>{ if(apodRnd) toggleFav(apodRnd); };
 
-/* ===== Mars Rover Photos ===== */
+function toggleFav(apod){
+  const idx=FAVS.findIndex(f=>f.date===apod.date);
+  if(idx>=0) FAVS.splice(idx,1);
+  else FAVS.unshift({date:apod.date,title:apod.title,media_type:apod.media_type,url:apod.url||null,hdurl:apod.hdurl||null,thumbnail_url:apod.thumbnail_url||null});
+  LS.setFavs(FAVS);
+  renderFavs();
+  saveProfile(); // if signed in, sync to Firestore too
+}
+const favGrid=document.getElementById("favGrid");
+function renderFavs(){
+  favGrid.innerHTML="";
+  for(const f of FAVS){
+    const div=document.createElement("div"); div.className="thumb";
+    const src = f.thumbnail_url || f.hdurl || f.url;
+    div.innerHTML = `<img alt="thumb"><div class="label">${f.title || f.date}</div>`;
+    const img=div.querySelector("img"); img.src=src; img.alt=f.title||f.date;
+    div.onclick = async ()=>{ alert(`Opening ${f.date}`); };
+    favGrid.appendChild(div);
+  }
+}
+document.getElementById("favExport").onclick=()=>{ const blob=new Blob([JSON.stringify(FAVS,null,2)],{type:"application/json"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="apod-favorites.json"; a.click(); URL.revokeObjectURL(url); };
+document.getElementById("favImport").onclick=()=>{ const inp=document.createElement("input"); inp.type="file"; inp.accept="application/json"; inp.onchange=()=>{ const f=inp.files?.[0]; if(!f) return; const rd=new FileReader(); rd.onload=()=>{ try{ const arr=JSON.parse(rd.result); if(Array.isArray(arr)){ FAVS=arr; LS.setFavs(FAVS); renderFavs(); saveProfile(); } }catch(e){ alert("Import failed: "+e.message);} }; rd.readAsText(f); }; inp.click(); };
+document.getElementById("favClear").onclick=()=>{ if(!confirm("Clear all favorites?")) return; FAVS=[]; LS.setFavs(FAVS); renderFavs(); saveProfile(); };
+document.getElementById("favSync").onclick=()=>saveProfile(true);
+
+/*** Mars Rover ***/
 const marsMedia=document.getElementById("marsMedia"),
       marsInfo=document.getElementById("marsInfo");
 async function loadMars(){
@@ -353,12 +441,11 @@ document.getElementById("marsLoad").onclick=loadMars;
 document.getElementById("marsPrev").onclick=()=>{const s=document.getElementById("sol"); s.value=Math.max(0, (parseInt(s.value||"0",10)-1)); loadMars();};
 document.getElementById("marsNext").onclick=()=>{const s=document.getElementById("sol"); s.value=(parseInt(s.value||"0",10)+1); loadMars();};
 
-/* ===== EPIC Earth ===== */
+/*** EPIC ***/
 const epicDate=document.getElementById("epicDate"),
       epicMedia=document.getElementById("epicMedia"),
       epicInfo=document.getElementById("epicInfo");
 let epicList=[], epicIdx=0;
-function isoToday(){ const t=new Date(); const y=t.getFullYear(),m=String(t.getMonth()+1).padStart(2,"0"),d=String(t.getDate()).padStart(2,"0"); return `${y}-${m}-${d}`; }
 epicDate.value = (()=>{ const t=new Date(); t.setDate(t.getDate()-1); return t.toISOString().slice(0,10); })();
 async function loadEPIC(){
   epicMedia.innerHTML=""; epicInfo.textContent="Loading…";
@@ -380,42 +467,24 @@ function renderEPIC(){
   const rec=epicList[epicIdx];
   const img=new Image(); img.loading="lazy"; img.src=epicImageURL(rec);
   epicMedia.appendChild(img);
-  epicInfo.textContent=`${fmtDate(rec.date)} • Index ${epicIdx+1}/${epicList.length}`;
+  epicInfo.textContent=`${fmtDate(rec.date)} • ${epicIdx+1}/${epicList.length}`;
 }
 document.getElementById("epicLoad").onclick=loadEPIC;
 document.getElementById("epicPrev").onclick=()=>{ if(epicList.length){ epicIdx=(epicIdx-1+epicList.length)%epicList.length; renderEPIC(); } };
 document.getElementById("epicNext").onclick=()=>{ if(epicList.length){ epicIdx=(epicIdx+1)%epicList.length; renderEPIC(); } };
 
-/* ===== SpaceX ===== */
+/*** SpaceX ***/
 const sxList=document.getElementById("sxList");
 async function sxFetch(path){ const r=await fetch("https://api.spacexdata.com/v4/"+path); if(!r.ok) throw new Error("SpaceX error: "+r.status); return r.json(); }
-function renderLaunchCard(launch){
-  const d=document.createElement("div");
-  const t=new Date(launch.date_utc);
-  d.innerHTML = `
-    <div class="row" style="justify-content:space-between"><strong>${launch.name}</strong><span class="meta">${t.toLocaleString()}</span></div>
-    <div class="meta">${launch.details || "No details yet."}</div>
-    ${launch.links?.webcast ? `<a class="btn ghost" href="${launch.links.webcast}" target="_blank" rel="noreferrer">Webcast</a>` : ""}
-  `;
-  sxList.appendChild(d);
+function card(html){ const d=document.createElement("div"); d.innerHTML=html; d.className="card"; d.style.padding="12px"; return d; }
+function launchCard(launch){
+  const t=new Date(launch.date_utc).toLocaleString();
+  return card(`<div class="content"><div class="row" style="justify-content:space-between"><strong>${launch.name}</strong><span class="meta">${t}</span></div><div class="meta">${launch.details||"No details."}</div>${launch.links?.webcast?`<a class="btn ghost" href="${launch.links.webcast}" target="_blank" rel="noreferrer">Webcast</a>`:""}</div>`);
 }
-document.getElementById("sxUpcoming").onclick=async()=>{
-  sxList.innerHTML=""; 
-  try{
-    const ups=await sxFetch("launches/upcoming");
-    ups.sort((a,b)=>new Date(a.date_utc)-new Date(b.date_utc));
-    ups.slice(0,5).forEach(renderLaunchCard);
-  }catch(e){ sxList.textContent=e.message; }
-};
-document.getElementById("sxLatest").onclick=async()=>{
-  sxList.innerHTML="";
-  try{
-    const latest=await sxFetch("launches/latest");
-    renderLaunchCard(latest);
-  }catch(e){ sxList.textContent=e.message; }
-};
+document.getElementById("sxUpcoming").onclick=async()=>{ sxList.innerHTML=""; try{ const ups=await sxFetch("launches/upcoming"); ups.sort((a,b)=>new Date(a.date_utc)-new Date(b.date_utc)); ups.slice(0,5).forEach(l=>sxList.appendChild(launchCard(l))); }catch(e){ sxList.textContent=e.message; } };
+document.getElementById("sxLatest").onclick=async()=>{ sxList.innerHTML=""; try{ const latest=await sxFetch("launches/latest"); sxList.appendChild(launchCard(latest)); }catch(e){ sxList.textContent=e.message; } };
 
-/* ===== Weather (Open-Meteo + OSM Geocoder) ===== */
+/*** Weather (Open-Meteo + OSM) ***/
 async function geocode(q){
   const u=new URL("https://nominatim.openstreetmap.org/search");
   u.searchParams.set("q", q); u.searchParams.set("format","json"); u.searchParams.set("limit","1");
@@ -444,13 +513,13 @@ document.getElementById("wxGo").onclick=async()=>{
       now.textContent = `Now: ${wx.current_weather.temperature}°C • Wind ${wx.current_weather.windspeed} km/h`;
     }
     if(wx.hourly?.time && wx.hourly?.temperature_2m){
-      const last = wx.hourly.time.slice(0, 12).map((t,i)=>`${t.slice(11,16)}: ${wx.hourly.temperature_2m[i]}°C`);
-      hourly.textContent = "Next hours: " + last.join("  ·  ");
+      const next = wx.hourly.time.slice(0, 12).map((t,i)=>`${t.slice(11,16)}: ${wx.hourly.temperature_2m[i]}°C`);
+      hourly.textContent = "Next hours: " + next.join("  ·  ");
     }
   }catch(e){ info.textContent = e.message; }
 };
 
-/* ===== Unsplash Random ===== */
+/*** Unsplash ***/
 let usPhoto=null;
 document.getElementById("usRandom").onclick=async()=>{
   const q=document.getElementById("usQuery").value.trim()||"space";
@@ -470,7 +539,94 @@ document.getElementById("usRandom").onclick=async()=>{
 };
 document.getElementById("usDL").onclick=()=>{ if(!usPhoto) return alert("No photo"); downloadURL(usPhoto.links.download||usPhoto.urls.full||usPhoto.urls.raw,"unsplash"); };
 
-/* ===== Init ===== */
+/*** FIREBASE (Auth + Firestore) ***/
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCjxG90jXrMW5BUK_pc-3C3pjupCdgQdIE",
+  authDomain: "space-hub-9a0a4.firebaseapp.com",
+  projectId: "space-hub-9a0a4",
+  storageBucket: "space-hub-9a0a4.firebasestorage.app",
+  messagingSenderId: "325249598739",
+  appId: "1:325249598739:web:14908beb6e9c3c123846e6",
+  measurementId: "G-996QGBJXXR"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+
+/*** Account UI ***/
+const acctStatus=document.getElementById("acctStatus");
+const acctDetail=document.getElementById("acctDetail");
+const signInBtn=document.getElementById("signIn");
+const signOutBtn=document.getElementById("signOut");
+
+signInBtn.onclick = async()=>{
+  try{ await signInWithPopup(auth, provider); }
+  catch(e){ alert(e.message); }
+};
+signOutBtn.onclick = ()=>signOut(auth);
+
+onAuthStateChanged(auth, async(user)=>{
+  USER = user || null;
+  if(USER){
+    acctStatus.textContent = `Signed in as ${USER.displayName||USER.email||USER.uid}`;
+    signInBtn.style.display="none";
+    signOutBtn.style.display="inline-block";
+    await loadProfile(); // pulls keys + favs from Firestore, merges with local
+  }else{
+    acctStatus.textContent = "Not signed in";
+    signInBtn.style.display="inline-block";
+    signOutBtn.style.display="none";
+  }
+});
+
+/*** PROFILE LOAD/SAVE (Firestore <-> Local) ***/
+async function loadProfile(){
+  if(!USER) return;
+  try{
+    const ref = doc(db, "users", USER.uid);
+    const snap = await getDoc(ref);
+    if(snap.exists()){
+      const data = snap.data();
+      // merge (server wins if conflicts)
+      if(data.nasaKey){ NASA_KEY=data.nasaKey; LS.setNasaKey(NASA_KEY); nasaKeyLbl.textContent=NASA_KEY; }
+      if(data.unsplashKey){ UNSPLASH_KEY=data.unsplashKey; LS.setUnsplashKey(UNSPLASH_KEY); unsplashKeyLbl.textContent=UNSPLASH_KEY; refreshUnsplashVisibility(); }
+      if(Array.isArray(data.favs)) { FAVS = data.favs; LS.setFavs(FAVS); }
+    }else{
+      // first time: bootstrap server with existing local state
+      await setDoc(ref, { nasaKey: NASA_KEY, unsplashKey: UNSPLASH_KEY, favs: FAVS });
+    }
+  }catch(e){ console.warn("loadProfile:", e.message); }
+  renderFavs();
+}
+async function saveProfile(force=false){
+  if(!USER){ if(force) alert("Sign in to sync."); return; }
+  try{
+    const ref = doc(db, "users", USER.uid);
+    await setDoc(ref, { nasaKey: NASA_KEY, unsplashKey: UNSPLASH_KEY, favs: FAVS }, { merge:true });
+    if(force) alert("Synced!");
+  }catch(e){ if(force) alert("Sync failed: "+e.message); }
+}
+
+/*** INIT ***/
+renderFavs();
 loadAPODDaily(); rerollAPOD();
 </script>
 </body>

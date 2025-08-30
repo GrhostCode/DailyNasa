@@ -1,65 +1,61 @@
 <!doctype html>
 <html lang="en" data-theme="dark">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Space Hub — NASA + SpaceX + Weather + Accounts</title>
-
-<!-- Leaflet (for ISS map) -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhYJ4k6kG6su2Vh8qR2v3Q2jPz9F2aPM3sWQ=" crossorigin=""/>
-<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-7Q9nBVrS7400N3YQzUytQM5bZ8G8ZbyqYjQf2SYL3jY=" crossorigin=""></script>
-
-<!-- Suncalc (moon phase / sun times) -->
-<script defer src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
-
-<style>
-  :root{--bg:#0b1020;--card:#121936cc;--text:#eaf0ff;--muted:#9fb0d1;--accent:#7aa2f7;--border:#ffffff1e}
-  [data-theme="light"]{--bg:#f5f7ff;--card:#ffffff;--text:#0b1020;--muted:#4b5b86;--accent:#2563eb;--border:#0b10202a}
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:radial-gradient(1000px 600px at 20% -10%,#19244d 0%,var(--bg) 60%);color:var(--text)}
-  header{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-  h1{font-size:20px;margin:0;display:flex;gap:10px;align-items:center}
-  .btn{background:var(--accent);color:#061022;border:0;border-radius:999px;padding:8px 12px;font-weight:700;cursor:pointer}
-  .btn.secondary{background:transparent;color:inherit;border:1px solid var(--border)}
-  .btn.ghost{background:transparent;border:1px dashed var(--border);color:inherit}
-  .pill{padding:2px 8px;border-radius:999px;border:1px solid var(--border);font-size:12px;color:var(--muted)}
-  main{max-width:1200px;margin:0 auto;padding:16px;display:grid;gap:14px}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 30px #0004;overflow:hidden}
-  .tabs{display:flex;gap:8px;flex-wrap:wrap}
-  .tab{padding:10px 12px;border:1px solid var(--border);border-radius:999px;background:transparent;color:inherit;cursor:pointer}
-  .tab.active{background:var(--accent);color:#061022;border:0}
-  .panel{display:none}
-  .panel.active{display:block}
-  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  .media{display:flex;align-items:center;justify-content:center;background:#060a18}
-  [data-theme="light"] .media{background:#e9eefc}
-  img,iframe,video{max-width:100%;width:100%;height:auto;display:block}
-  .content{padding:14px;display:grid;gap:10px}
-  .title{font-weight:800;margin:0}
-  .meta{color:var(--muted);font-size:14px}
-  .grid2{display:grid;grid-template-columns:1fr;gap:14px}
-  @media(min-width:980px){.grid2{grid-template-columns:1fr 1fr}}
-  input,select{padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:inherit}
-  label{display:flex;gap:6px;align-items:center}
-  .key{font-family:ui-monospace,Menlo,Consolas,monospace;padding:2px 6px;border-radius:6px;border:1px solid var(--border)}
-  .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
-  .thumb{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#070b18;cursor:pointer}
-  [data-theme="light"] .thumb{background:#e9eefc}
-  .thumb img{width:100%;height:100px;object-fit:cover;display:block}
-  .thumb .label{padding:8px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  footer{color:var(--muted);text-align:center;font-size:12px;padding:10px 0 20px}
-
-  /* ISS map */
-  #issMap { width:100%; height:420px; }
-</style>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Space Hub — NASA + SpaceX + Weather + Accounts</title>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <!-- Leaflet for ISS map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <style>
+    :root{--bg:#0b1020;--card:#121936cc;--text:#eaf0ff;--muted:#9fb0d1;--accent:#7aa2f7;--border:#ffffff1e}
+    [data-theme="light"]{--bg:#f5f7ff;--card:#ffffff;--text:#0b1020;--muted:#4b5b86;--accent:#2563eb;--border:#0b10202a}
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:radial-gradient(1000px 600px at 20% -10%,#19244d 0%,var(--bg) 60%);color:var(--text)}
+    header{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    h1{font-size:20px;margin:0;display:flex;gap:10px;align-items:center}
+    .btn{background:var(--accent);color:#061022;border:0;border-radius:999px;padding:8px 12px;font-weight:700;cursor:pointer}
+    .btn.secondary{background:transparent;color:inherit;border:1px solid var(--border)}
+    .btn.ghost{background:transparent;border:1px dashed var(--border);color:inherit}
+    .pill{padding:2px 8px;border-radius:999px;border:1px solid var(--border);font-size:12px;color:var(--muted)}
+    main{max-width:1200px;margin:0 auto;padding:16px;display:grid;gap:14px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 30px #0004;overflow:hidden}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tab{padding:10px 12px;border:1px solid var(--border);border-radius:999px;background:transparent;color:inherit;cursor:pointer}
+    .tab.active{background:var(--accent);color:#061022;border:0}
+    .panel{display:none}
+    .panel.active{display:block}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .media{display:flex;align-items:center;justify-content:center;background:#060a18}
+    [data-theme="light"] .media{background:#e9eefc}
+    img,iframe,video{max-width:100%;width:100%;height:auto;display:block}
+    .content{padding:14px;display:grid;gap:10px}
+    .title{font-weight:800;margin:0}
+    .meta{color:var(--muted);font-size:14px}
+    .grid2{display:grid;grid-template-columns:1fr;gap:14px}
+    @media(min-width:980px){.grid2{grid-template-columns:1fr 1fr}}
+    input,select{padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:inherit}
+    label{display:flex;gap:6px;align-items:center}
+    .key{font-family:ui-monospace,Menlo,Consolas,monospace;padding:2px 6px;border-radius:6px;border:1px solid var(--border)}
+    .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+    .thumb{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#070b18}
+    [data-theme="light"] .thumb{background:#e9eefc}
+    .thumb img{width:100%;height:100px;object-fit:cover;display:block}
+    .thumb .label{padding:8px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    /* ISS map sizing */
+    #issMap{width:100%;height:380px}
+    footer{color:var(--muted);text-align:center;font-size:12px;padding:10px 0 20px}
+    .hidden{display:none !important}
+  </style>
 </head>
 <body>
 <header>
   <h1>🛰️ Space Hub</h1>
   <div class="row">
     <span class="pill" id="themeState">Dark</span>
-    <button class="btn secondary" id="toggleTheme" title="g">Toggle Theme</button>
+    <button class="btn secondary" id="toggleTheme">Toggle Theme</button>
   </div>
 </header>
 
@@ -103,9 +99,8 @@
     <button class="tab" data-tab="epic">EPIC Earth</button>
     <button class="tab" data-tab="spacex">SpaceX</button>
     <button class="tab" data-tab="weather">Weather</button>
-    <button class="tab" data-tab="iss">ISS</button>
-    <button class="tab" data-tab="sky">Sky</button>
     <button class="tab" data-tab="unsplash">Unsplash</button>
+    <button class="tab" data-tab="iss">ISS Live</button>
     <button class="tab" data-tab="account">Account</button>
   </div>
 
@@ -117,21 +112,16 @@
         <div id="apodDailyMedia" class="media"></div>
         <div class="content">
           <div class="row" style="justify-content:space-between">
+            <div id="apodDailyInfo" class="meta">Loading today…</div>
             <div class="row">
-              <div id="apodDailyInfo" class="meta">Loading today…</div>
-            </div>
-            <div class="row">
-              <input type="date" id="apodDate" title="Pick a date"/>
               <button id="apodDailyRefresh" class="btn secondary">Refresh</button>
-              <button id="apodDailyFav" class="btn ghost" title="f">♡ Favorite</button>
-              <button id="apodDailyShare" class="btn ghost">Share</button>
+              <button id="apodDailyFav" class="btn ghost">♡ Favorite</button>
               <button id="apodDailyOpen" class="btn ghost">Open HD</button>
-              <button id="apodDailyDL" class="btn" title="d">Download</button>
+              <button id="apodDailyDL" class="btn ghost">Download</button>
             </div>
           </div>
           <h3 id="apodDailyTitle" class="title"></h3>
           <div id="apodDailyExpl" class="meta"></div>
-          <div class="meta" id="apodDailyMsg"></div>
         </div>
       </section>
 
@@ -142,32 +132,17 @@
           <div class="row" style="justify-content:space-between">
             <div id="apodRndInfo" class="meta">Click Re-roll</div>
             <div class="row">
-              <button id="apodRndReroll" class="btn" title="r">Re-roll 🔄</button>
-              <button id="apodRndAuto" class="btn secondary">Auto: Off</button>
-              <button id="apodRndFav" class="btn ghost" title="f">♡ Favorite</button>
-              <button id="apodRndShare" class="btn ghost">Share</button>
+              <button id="apodRndReroll" class="btn">Re-roll 🔄</button>
+              <button id="apodRndFav" class="btn ghost">♡ Favorite</button>
               <button id="apodRndOpen" class="btn ghost">Open HD</button>
-              <button id="apodRndDL" class="btn" title="d">Download</button>
+              <button id="apodRndDL" class="btn ghost">Download</button>
             </div>
           </div>
           <h3 id="apodRndTitle" class="title"></h3>
           <div id="apodRndExpl" class="meta"></div>
-          <div class="meta" id="apodRndMsg"></div>
         </div>
       </section>
     </div>
-
-    <!-- Recent APOD gallery -->
-    <section class="card" style="margin-top:14px;padding:14px">
-      <div class="row" style="justify-content:space-between">
-        <h3 class="title" style="margin:0">🗓️ Recent APOD (last 8 days)</h3>
-        <div class="row">
-          <button id="apodRecentReload" class="btn secondary">Reload</button>
-        </div>
-      </div>
-      <div id="apodRecentGrid" class="gallery" style="margin-top:10px"></div>
-      <p class="meta">Click a thumbnail to open HD in a new tab. Alt+Click to favorite quickly.</p>
-    </section>
 
     <!-- Favorites gallery -->
     <section class="card" style="margin-top:14px;padding:14px">
@@ -181,7 +156,7 @@
         </div>
       </div>
       <div id="favGrid" class="gallery" style="margin-top:10px"></div>
-      <p class="meta">Open item on click. Alt+Click to remove from favorites.</p>
+      <p class="meta">Favorites are saved to your account when signed in, else locally.</p>
     </section>
   </section>
 
@@ -237,7 +212,6 @@
         <div class="row">
           <button id="epicPrev" class="btn secondary">Prev</button>
           <button id="epicNext" class="btn secondary">Next</button>
-          <button id="epicDL" class="btn">Download current</button>
         </div>
       </div>
     </section>
@@ -273,37 +247,6 @@
     </section>
   </section>
 
-  <!-- ISS live -->
-  <section id="iss" class="panel">
-    <section class="card">
-      <div class="content">
-        <div class="row" style="justify-content:space-between">
-          <strong>🛰️ ISS Live Position</strong>
-          <div class="row">
-            <button id="issStart" class="btn">Start</button>
-            <button id="issStop" class="btn secondary">Stop</button>
-          </div>
-        </div>
-        <div class="meta" id="issInfo">Updates every ~5s</div>
-      </div>
-      <div id="issMap"></div>
-    </section>
-  </section>
-
-  <!-- Sky helper -->
-  <section id="sky" class="panel">
-    <section class="card">
-      <div class="content">
-        <div class="row">
-          <label>Where <input id="skyWhere" placeholder="San Juan, PR"/></label>
-          <button id="skyGo" class="btn">Compute</button>
-        </div>
-        <div id="skyInfo" class="meta">Shows moon phase and sun rise/set with Suncalc (no keys).</div>
-      </div>
-      <div class="content" id="skyOut"></div>
-    </section>
-  </section>
-
   <!-- Unsplash -->
   <section id="unsplash" class="panel">
     <section class="card">
@@ -322,6 +265,23 @@
     </section>
   </section>
 
+  <!-- ISS -->
+  <section id="iss" class="panel">
+    <section class="card">
+      <div class="content">
+        <div class="row" style="justify-content:space-between">
+          <strong>ISS Live Tracker</strong>
+          <div class="row">
+            <button id="issStart" class="btn">Start</button>
+            <button id="issStop" class="btn secondary">Stop</button>
+          </div>
+        </div>
+        <div id="issInfo" class="meta">Press Start to begin tracking.</div>
+      </div>
+      <div id="issMap"></div>
+    </section>
+  </section>
+
   <!-- Account tab -->
   <section id="account" class="panel">
     <section class="card">
@@ -333,9 +293,9 @@
   </section>
 </main>
 
-<footer>Data: NASA, SpaceX, Open-Meteo, OSM, Unsplash. Auth & DB: Firebase (free tier).</footer>
+<footer>Data: NASA, SpaceX, Open-Meteo, OSM, Unsplash, WhereTheISS. Auth & DB: Firebase (free tier).</footer>
 
-<!-- Main app (module) -->
+<!-- App code -->
 <script type="module">
 /*** THEME ***/
 const themeKey="spacehub_theme";
@@ -350,7 +310,12 @@ document.querySelectorAll(".tab").forEach(b=>{
     document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
     document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
     b.classList.add("active");
-    document.getElementById(b.dataset.tab).classList.add("active");
+    const panel = document.getElementById(b.dataset.tab);
+    panel.classList.add("active");
+    if (b.dataset.tab === "iss") {
+      initISSMap();
+      setTimeout(()=>{ if (issMap) issMap.invalidateSize(); }, 60);
+    }
   };
 });
 
@@ -375,10 +340,9 @@ const nasaKeyLbl=document.getElementById("nasaKeyLbl");
 const unsplashKeyLbl=document.getElementById("unsplashKeyLbl");
 nasaKeyLbl.textContent = NASA_KEY;
 unsplashKeyLbl.textContent = UNSPLASH_KEY || "unset";
-document.getElementById("setNasaKey").onclick=()=>{ const v=prompt("Enter NASA API key:", NASA_KEY==="DEMO_KEY"?"":NASA_KEY); if(v&&v.trim()){NASA_KEY=v.trim(); LS.setNasaKey(NASA_KEY); nasaKeyLbl.textContent=NASA_KEY; loadAPODDaily(); rerollAPOD(); loadRecentAPOD(); saveProfile(); }};
-document.getElementById("useDemo").onclick=()=>{ NASA_KEY="DEMO_KEY"; LS.setNasaKey(NASA_KEY); nasaKeyLbl.textContent=NASA_KEY; loadAPODDaily(); rerollAPOD(); loadRecentAPOD(); saveProfile(); };
-document.getElementById("setUnsplashKey").onclick=()=>{ const v=prompt("Enter Unsplash access key:", UNSPLASH_KEY||""); if(v&&v.trim()){UNSPLASH_KEY=v.trim(); LS.setUnsplashKey(UNSPLASH_KEY); unsplashKeyLbl.textContent=UNSPLASH_KEY; saveProfile(); }};
-// Hide Unsplash tab if no key
+document.getElementById("setNasaKey").onclick=()=>{ const v=prompt("Enter NASA API key:", NASA_KEY==="DEMO_KEY"?"":NASA_KEY); if(v&&v.trim()){NASA_KEY=v.trim(); LS.setNasaKey(NASA_KEY); nasaKeyLbl.textContent=NASA_KEY; loadAPODDaily(); rerollAPOD(); saveProfile(); }};
+document.getElementById("useDemo").onclick=()=>{ NASA_KEY="DEMO_KEY"; LS.setNasaKey(NASA_KEY); nasaKeyLbl.textContent=NASA_KEY; loadAPODDaily(); rerollAPOD(); saveProfile(); };
+document.getElementById("setUnsplashKey").onclick=()=>{ const v=prompt("Enter Unsplash access key:", UNSPLASH_KEY||""); if(v&&v.trim()){UNSPLASH_KEY=v.trim(); LS.setUnsplashKey(UNSPLASH_KEY); unsplashKeyLbl.textContent=UNSPLASH_KEY; refreshUnsplashVisibility(); saveProfile(); }};
 function refreshUnsplashVisibility(){
   const tab=document.querySelector('.tab[data-tab="unsplash"]');
   const panel=document.getElementById('unsplash');
@@ -389,30 +353,6 @@ refreshUnsplashVisibility();
 /*** HELPERS ***/
 const fmtDate = d => new Date(d).toLocaleString(undefined,{year:'numeric',month:'long',day:'numeric'});
 const bestImg = apod => apod.hdurl||apod.url||apod.thumbnail_url||null;
-
-// robust downloader: try blob, fallback to just opening
-async function downloadFile(url, filename, msgEl){
-  try{
-    const res = await fetch(url, {mode:"cors"});
-    if(!res.ok) throw new Error("HTTP "+res.status);
-    const blob = await res.blob();
-    const a = document.createElement("a");
-    const ext = (()=>{const t=blob.type||''; if(t.includes("png")) return ".png"; if(t.includes("gif")) return ".gif"; if(t.includes("webp")) return ".webp"; return ".jpg";})();
-    a.href = URL.createObjectURL(blob);
-    a.download = (filename || "download").replace(/[^a-z0-9\-_]+/gi,"_") + ext;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(a.href), 1500);
-    if(msgEl) msgEl.textContent = "Downloaded ✅";
-  }catch(e){
-    // fallback: open in new tab with download attribute
-    const a=document.createElement("a");
-    a.href=url; a.target="_blank"; a.rel="noreferrer";
-    a.download=(filename||"download").replace(/[^a-z0-9\-_]+/gi,"_");
-    document.body.appendChild(a); a.click(); a.remove();
-    if(msgEl) msgEl.textContent = "Opened image (download fallback).";
-  }
-}
-
 function renderMedia(container, item){
   container.innerHTML="";
   if(!item){container.textContent="No media.";return;}
@@ -425,6 +365,17 @@ function renderMedia(container, item){
     container.appendChild(img);
   }
 }
+async function downloadToFile(url, filename="download.jpg"){
+  try{
+    const r = await fetch(url, {mode:"cors"});
+    const blob = await r.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename.replace(/[^a-z0-9\-_\.]+/gi,"_");
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  }catch(e){ alert("Download failed: " + (e.message||e)); }
+}
 
 /*** APOD (Daily + Random + Favorites) ***/
 async function apodFetch(params={}){
@@ -436,55 +387,34 @@ async function apodFetch(params={}){
   if(!r.ok) throw new Error("APOD error: "+r.status);
   return r.json();
 }
-
-/* Daily */
 const apodDailyMedia=document.getElementById("apodDailyMedia"),
       apodDailyInfo=document.getElementById("apodDailyInfo"),
       apodDailyTitle=document.getElementById("apodDailyTitle"),
-      apodDailyExpl=document.getElementById("apodDailyExpl"),
-      apodDailyMsg=document.getElementById("apodDailyMsg"),
-      apodDate=document.getElementById("apodDate");
+      apodDailyExpl=document.getElementById("apodDailyExpl");
 let apodDaily=null;
-
-async function loadAPODDaily(dateStr){
-  apodDailyInfo.textContent="Loading…"; apodDailyTitle.textContent=""; apodDailyExpl.textContent=""; apodDailyMedia.innerHTML=""; apodDailyMsg.textContent="";
+async function loadAPODDaily(){
+  apodDailyInfo.textContent="Loading…"; apodDailyTitle.textContent=""; apodDailyExpl.textContent=""; apodDailyMedia.innerHTML="";
   try{
-    const p = dateStr ? {date: dateStr} : {};
-    const apod=await apodFetch(p);
+    const apod=await apodFetch();
     apodDaily=apod;
     renderMedia(apodDailyMedia, apod);
     apodDailyInfo.textContent=`${fmtDate(apod.date)} • © NASA/APOD`;
     apodDailyTitle.textContent=apod.title||"";
     apodDailyExpl.textContent=apod.explanation||"";
-    apodDate.value = apod.date || "";
   }catch(e){ apodDailyInfo.textContent=e.message||"Failed"; }
 }
-document.getElementById("apodDailyRefresh").onclick=()=>loadAPODDaily(apodDate.value || undefined);
-apodDate.onchange = ()=> loadAPODDaily(apodDate.value || undefined);
+document.getElementById("apodDailyRefresh").onclick=loadAPODDaily;
 document.getElementById("apodDailyOpen").onclick=()=>{const u=apodDaily && bestImg(apodDaily); if(!u) return alert("No image"); window.open(u,"_blank","noreferrer");};
-document.getElementById("apodDailyDL").onclick=()=>{const u=apodDaily && bestImg(apodDaily); if(!u) return alert("No image"); downloadFile(u, apodDaily.title||"apod", apodDailyMsg);};
+document.getElementById("apodDailyDL").onclick=()=>{const u=apodDaily && bestImg(apodDaily); if(!u) return alert("No image"); downloadToFile(u, (apodDaily.title||"apod")+".jpg");};
 document.getElementById("apodDailyFav").onclick=()=>{ if(apodDaily) toggleFav(apodDaily); };
-document.getElementById("apodDailyShare").onclick=async()=>{
-  if(!apodDaily) return;
-  const url = bestImg(apodDaily) || apodDaily.url;
-  const text = `${apodDaily.title} — ${fmtDate(apodDaily.date)}`;
-  try{
-    if(navigator.share){ await navigator.share({title: apodDaily.title, text, url}); }
-    else { await navigator.clipboard.writeText(url); alert("Image link copied to clipboard!"); }
-  }catch{}
-};
 
-/* Random */
 const apodRndMedia=document.getElementById("apodRndMedia"),
       apodRndInfo=document.getElementById("apodRndInfo"),
       apodRndTitle=document.getElementById("apodRndTitle"),
-      apodRndExpl=document.getElementById("apodRndExpl"),
-      apodRndMsg=document.getElementById("apodRndMsg"),
-      apodRndAutoBtn=document.getElementById("apodRndAuto");
-let apodRnd=null, rndTimer=null;
-
+      apodRndExpl=document.getElementById("apodRndExpl");
+let apodRnd=null;
 async function rerollAPOD(){
-  apodRndInfo.textContent="Loading random…"; apodRndTitle.textContent=""; apodRndExpl.textContent=""; apodRndMedia.innerHTML=""; apodRndMsg.textContent="";
+  apodRndInfo.textContent="Loading random…"; apodRndTitle.textContent=""; apodRndExpl.textContent=""; apodRndMedia.innerHTML="";
   try{
     const res=await apodFetch({count:1});
     const apod=Array.isArray(res)?res[0]:res;
@@ -497,45 +427,16 @@ async function rerollAPOD(){
 }
 document.getElementById("apodRndReroll").onclick=rerollAPOD;
 document.getElementById("apodRndOpen").onclick=()=>{const u=apodRnd && bestImg(apodRnd); if(!u) return alert("No image"); window.open(u,"_blank","noreferrer");};
-document.getElementById("apodRndDL").onclick=()=>{const u=apodRnd && bestImg(apodRnd); if(!u) return alert("No image"); downloadFile(u, apodRnd.title||"apod", apodRndMsg);};
+document.getElementById("apodRndDL").onclick=()=>{const u=apodRnd && bestImg(apodRnd); if(!u) return alert("No image"); downloadToFile(u, (apodRnd.title||"apod")+".jpg");};
 document.getElementById("apodRndFav").onclick=()=>{ if(apodRnd) toggleFav(apodRnd); };
 
-apodRndAutoBtn.onclick=()=>{
-  if(rndTimer){ clearInterval(rndTimer); rndTimer=null; apodRndAutoBtn.textContent="Auto: Off"; }
-  else { rndTimer=setInterval(rerollAPOD, 6000); apodRndAutoBtn.textContent="Auto: On"; }
-};
-
-/* Recent APODs */
-const apodRecentGrid=document.getElementById("apodRecentGrid");
-async function loadRecentAPOD(){
-  apodRecentGrid.innerHTML="";
-  try{
-    const end = new Date(); const start = new Date(); start.setDate(end.getDate()-7);
-    const fmt = d=>d.toISOString().slice(0,10);
-    const data = await apodFetch({start_date: fmt(start), end_date: fmt(end), thumbs: "true"});
-    const list = Array.isArray(data) ? data.reverse() : [];
-    for(const ap of list){
-      const div=document.createElement("div"); div.className="thumb";
-      const src = ap.thumbnail_url || ap.hdurl || ap.url;
-      div.innerHTML = `<img alt=""><div class="label">${ap.title||ap.date}</div>`;
-      const img=div.querySelector("img"); img.src=src; img.alt=ap.title||ap.date;
-      div.onclick=(e)=>{ if(e.altKey){ toggleFav(ap); } else { window.open(bestImg(ap)||ap.url, "_blank", "noreferrer"); } };
-      apodRecentGrid.appendChild(div);
-    }
-  }catch(e){
-    apodRecentGrid.innerHTML = `<div class="meta">Failed to load recent APODs: ${e.message}</div>`;
-  }
-}
-document.getElementById("apodRecentReload").onclick=loadRecentAPOD;
-
-/*** Favorites ***/
 function toggleFav(apod){
   const idx=FAVS.findIndex(f=>f.date===apod.date);
   if(idx>=0) FAVS.splice(idx,1);
   else FAVS.unshift({date:apod.date,title:apod.title,media_type:apod.media_type,url:apod.url||null,hdurl:apod.hdurl||null,thumbnail_url:apod.thumbnail_url||null});
   LS.setFavs(FAVS);
   renderFavs();
-  saveProfile(); // if signed in, sync to Firestore too
+  saveProfile();
 }
 const favGrid=document.getElementById("favGrid");
 function renderFavs(){
@@ -545,13 +446,7 @@ function renderFavs(){
     const src = f.thumbnail_url || f.hdurl || f.url;
     div.innerHTML = `<img alt="thumb"><div class="label">${f.title || f.date}</div>`;
     const img=div.querySelector("img"); img.src=src; img.alt=f.title||f.date;
-    div.onclick = (e)=>{ if(e.altKey){ // remove
-        const i=FAVS.findIndex(x=>x.date===f.date); if(i>=0){ FAVS.splice(i,1); LS.setFavs(FAVS); renderFavs(); saveProfile(); }
-      } else {
-        const openUrl = f.hdurl || f.url || f.thumbnail_url;
-        if(openUrl) window.open(openUrl, "_blank", "noreferrer");
-      }
-    };
+    div.onclick = ()=>{ window.open(src, "_blank", "noreferrer"); };
     favGrid.appendChild(div);
   }
 }
@@ -616,7 +511,6 @@ function renderEPIC(){
 document.getElementById("epicLoad").onclick=loadEPIC;
 document.getElementById("epicPrev").onclick=()=>{ if(epicList.length){ epicIdx=(epicIdx-1+epicList.length)%epicList.length; renderEPIC(); } };
 document.getElementById("epicNext").onclick=()=>{ if(epicList.length){ epicIdx=(epicIdx+1)%epicList.length; renderEPIC(); } };
-document.getElementById("epicDL").onclick=()=>{ if(!epicList.length) return alert("Load an EPIC date first."); const u=epicImageURL(epicList[epicIdx]); downloadFile(u, `EPIC_${epicList[epicIdx].image}`); };
 
 /*** SpaceX ***/
 const sxList=document.getElementById("sxList");
@@ -633,7 +527,7 @@ document.getElementById("sxLatest").onclick=async()=>{ sxList.innerHTML=""; try{
 async function geocode(q){
   const u=new URL("https://nominatim.openstreetmap.org/search");
   u.searchParams.set("q", q); u.searchParams.set("format","json"); u.searchParams.set("limit","1");
-  const r=await fetch(u, {headers:{"Accept":"application/json","User-Agent":"SpaceHub/1.0"}});
+  const r=await fetch(u, {headers:{"Accept":"application/json"}});
   if(!r.ok) throw new Error("Geocode error: "+r.status);
   const arr=await r.json(); return arr[0]||null;
 }
@@ -658,55 +552,10 @@ document.getElementById("wxGo").onclick=async()=>{
       now.textContent = `Now: ${wx.current_weather.temperature}°C • Wind ${wx.current_weather.windspeed} km/h`;
     }
     if(wx.hourly?.time && wx.hourly?.temperature_2m){
-      const next = wx.hourly.time.slice(0,12).map((t,i)=>`${t.slice(11,16)}: ${wx.hourly.temperature_2m[i]}°C`);
+      const next = wx.hourly.time.slice(0, 12).map((t,i)=>`${t.slice(11,16)}: ${wx.hourly.temperature_2m[i]}°C`);
       hourly.textContent = "Next hours: " + next.join("  ·  ");
     }
   }catch(e){ info.textContent = e.message; }
-};
-
-/*** ISS live (Leaflet + wheretheiss.at) ***/
-const issInfo=document.getElementById("issInfo");
-let issMap, issMarker, issTimer=null;
-function initISSMap(){
-  if(issMap) return;
-  issMap = L.map('issMap').setView([0,0], 2);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 6, attribution: '&copy; OpenStreetMap'
-  }).addTo(issMap);
-  issMarker = L.marker([0,0]).addTo(issMap).bindPopup('ISS');
-}
-async function fetchISS(){
-  try{
-    const r = await fetch("https://api.wheretheiss.at/v1/satellites/25544");
-    const js = await r.json();
-    const {latitude, longitude, velocity, visibility} = js;
-    issMarker.setLatLng([latitude, longitude]);
-    issInfo.textContent = `Lat ${latitude.toFixed(2)}, Lon ${longitude.toFixed(2)} • ${velocity.toFixed(1)} km/h • ${visibility}`;
-  }catch(e){ issInfo.textContent = "ISS error: "+e.message; }
-}
-document.getElementById("issStart").onclick=()=>{ initISSMap(); fetchISS(); if(issTimer) clearInterval(issTimer); issTimer=setInterval(fetchISS,5000); };
-document.getElementById("issStop").onclick=()=>{ if(issTimer) clearInterval(issTimer); issTimer=null; };
-
-/*** Sky helper (Suncalc) ***/
-document.getElementById("skyGo").onclick=async()=>{
-  const where = document.getElementById("skyWhere").value.trim() || "San Juan, PR";
-  const out = document.getElementById("skyOut");
-  out.innerHTML = "Geocoding…";
-  try{
-    const g = await geocode(where);
-    if(!g){ out.textContent="No match."; return; }
-    const lat=+g.lat, lon=+g.lon;
-    const now = new Date();
-    const sun = SunCalc.getTimes(now, lat, lon);
-    const moon = SunCalc.getMoonIllumination(now);
-    const phasePct = Math.round(moon.fraction*100);
-    const waxing = moon.phase < 0.5;
-    out.innerHTML = `
-      <div class="meta">${g.display_name}</div>
-      <div class="title">Moon illumination: ${phasePct}% (${waxing?"waxing":"waning"})</div>
-      <div class="meta">Sunrise: ${sun.sunrise.toLocaleTimeString()} &nbsp;•&nbsp; Sunset: ${sun.sunset.toLocaleTimeString()}</div>
-    `;
-  }catch(e){ out.textContent = e.message; }
 };
 
 /*** Unsplash ***/
@@ -727,23 +576,14 @@ document.getElementById("usRandom").onclick=async()=>{
     credit.innerHTML = `Photo by <a href="${p.user.links.html}?utm_source=SpaceHub&utm_medium=referral" target="_blank" rel="noreferrer">${p.user.name}</a> on Unsplash`;
   }catch(e){ info.textContent=e.message; }
 };
-document.getElementById("usDL").onclick=()=>{ if(!usPhoto) return alert("No photo"); const link = (usPhoto.links && usPhoto.links.download) ? (usPhoto.links.download + "?force=true") : (usPhoto.urls.full||usPhoto.urls.raw); downloadFile(link, "unsplash_photo"); };
+document.getElementById("usDL").onclick=()=>{ if(!usPhoto) return alert("No photo"); downloadToFile(usPhoto.links.download||usPhoto.urls.full||usPhoto.urls.raw,"unsplash.jpg"); };
 
-/*** Keyboard shortcuts ***/
-window.addEventListener("keydown",(e)=>{
-  if(e.target.tagName === "INPUT") return;
-  if(e.key.toLowerCase()==="r") document.getElementById("apodRndReroll").click();
-  if(e.key.toLowerCase()==="f"){ const activeApodRnd = document.querySelector("#apod .grid2 section:nth-child(2)"); if(activeApodRnd) document.getElementById("apodRndFav").click(); }
-  if(e.key.toLowerCase()==="d"){ const activeApodRnd = document.querySelector("#apod .grid2 section:nth-child(2)"); if(activeApodRnd) document.getElementById("apodRndDL").click(); else document.getElementById("apodDailyDL").click(); }
-  if(e.key.toLowerCase()==="g") document.getElementById("toggleTheme").click();
-});
-
-/*** FIREBASE (Auth + Firestore) — CLEAN ***/
+/*** FIREBASE (Auth + Firestore) ***/
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-/* UPDATE: your real config here */
+/* Replace these with YOUR OWN config from Firebase Console (Project settings → General → Web app) */
 const firebaseConfig = {
   apiKey: "AIzaSyCjxG90jXrMW5BUK_pc-3C3pjupCdgQdIE",
   authDomain: "space-hub-9a0a4.firebaseapp.com",
@@ -752,6 +592,7 @@ const firebaseConfig = {
   messagingSenderId: "325249598739",
   appId: "1:325249598739:web:14908beb6e9c3c123846e6"
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -764,11 +605,15 @@ const signInBtn = document.getElementById("signIn");
 const signOutBtn = document.getElementById("signOut");
 
 signInBtn.onclick = async () => {
-  try { await signInWithPopup(auth, provider); }
-  catch (e) {
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (e) {
     if (e.code === "auth/popup-blocked" || e.code === "auth/cancelled-popup-request") {
       await signInWithRedirect(auth, provider);
-    } else { alert(e.message); console.error(e); }
+    } else {
+      alert(e.message);
+      console.error(e);
+    }
   }
 };
 signOutBtn.onclick = () => signOut(auth);
@@ -787,7 +632,7 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-/*** PROFILE LOAD/SAVE ***/
+/*** PROFILE LOAD/SAVE (Firestore <-> Local) ***/
 async function loadProfile(){
   if(!USER) return;
   try{
@@ -813,11 +658,57 @@ async function saveProfile(force=false){
   }catch(e){ if(force) alert("Sync failed: "+e.message); }
 }
 
+/*** ISS live (Leaflet + wheretheiss.at) ***/
+const issInfo = document.getElementById("issInfo");
+let issMap, issMarker, issTimer = null;
+
+function initISSMap(){
+  if (issMap) return;
+  const container = document.getElementById("issMap");
+  if (!container) return;
+  issMap = L.map('issMap', { zoomControl: true }).setView([0,0], 2);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 6,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(issMap);
+  issMarker = L.marker([0,0]).addTo(issMap).bindPopup('ISS');
+  setTimeout(()=>issMap.invalidateSize(), 80);
+}
+
+async function fetchISS(){
+  try{
+    const r = await fetch("https://api.wheretheiss.at/v1/satellites/25544");
+    if (!r.ok) throw new Error("HTTP "+r.status);
+    const js = await r.json();
+    const { latitude, longitude, velocity, visibility } = js;
+    if (!issMap || !issMarker) return;
+    issMarker.setLatLng([latitude, longitude]);
+    issMap.setView([latitude, longitude], Math.max(2, issMap.getZoom()));
+    issInfo.textContent = `Lat ${latitude.toFixed(2)}, Lon ${longitude.toFixed(2)} • ${velocity.toFixed(1)} km/h • ${visibility}`;
+  }catch(e){
+    issInfo.textContent = "ISS error: " + (e.message || e);
+  }
+}
+
+document.getElementById("issStart").onclick = () => {
+  initISSMap();
+  fetchISS();
+  if (issTimer) clearInterval(issTimer);
+  issTimer = setInterval(fetchISS, 5000);
+  issInfo.textContent = "Tracking…";
+};
+document.getElementById("issStop").onclick = () => {
+  if (issTimer) clearInterval(issTimer);
+  issTimer = null;
+  issInfo.textContent = "Stopped.";
+};
+
 /*** INIT ***/
-renderFavs();
-await loadAPODDaily();
-await rerollAPOD();
-await loadRecentAPOD();
+(async ()=>{
+  renderFavs();
+  try { await loadAPODDaily(); } catch {}
+  try { await rerollAPOD(); } catch {}
+})();
 </script>
 </body>
 </html>

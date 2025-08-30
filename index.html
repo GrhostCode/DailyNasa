@@ -270,7 +270,7 @@
 
 <footer>Data: NASA, SpaceX, Open-Meteo, OSM, Unsplash. Auth & DB: Firebase (free tier).</footer>
 
-<!-- SINGLE script: everything below -->
+<!-- SINGLE script -->
 <script type="module">
 /*** THEME ***/
 const themeKey="spacehub_theme";
@@ -302,23 +302,24 @@ const LS = {
 /*** STATE ***/
 let NASA_KEY = LS.nasaKey();
 let UNSPLASH_KEY = LS.unsplashKey();
-let FAVS = LS.favs();
+let FAVS = LS.favs(); // [{date,title,media_type,url,hdurl,thumbnail_url}]
 let USER = null;
 
 /*** UI: KEYS ***/
 const nasaKeyLbl=document.getElementById("nasaKeyLbl");
 const unsplashKeyLbl=document.getElementById("unsplashKeyLbl");
-nasaKeyLbl.textContent = NASA_KEY;
-unsplashKeyLbl.textContent = UNSPLASH_KEY || "unset";
-document.getElementById("setNasaKey").onclick=()=>{ const v=prompt("Enter NASA API key:", NASA_KEY==="DEMO_KEY"?"":NASA_KEY); if(v&&v.trim()){NASA_KEY=v.trim(); LS.setNasaKey(NASA_KEY); nasaKeyLbl.textContent=NASA_KEY; loadAPODDaily(); rerollAPOD(); saveProfile(); }};
-document.getElementById("useDemo").onclick=()=>{ NASA_KEY="DEMO_KEY"; LS.setNasaKey(NASA_KEY); nasaKeyLbl.textContent=NASA_KEY; loadAPODDaily(); rerollAPOD(); saveProfile(); };
-document.getElementById("setUnsplashKey").onclick=()=>{ const v=prompt("Enter Unsplash access key:", UNSPLASH_KEY||""); if(v&&v.trim()){UNSPLASH_KEY=v.trim(); LS.setUnsplashKey(UNSPLASH_KEY); unsplashKeyLbl.textContent=UNSPLASH_KEY; saveProfile(); }};
-function refreshUnsplashVisibility(){
-  const tab=document.querySelector('.tab[data-tab="unsplash"]');
-  const panel=document.getElementById('unsplash');
-  if(!UNSPLASH_KEY){ tab?.classList.add('hidden'); panel?.classList.add('hidden'); } else { tab?.classList.remove('hidden'); panel?.classList.remove('hidden'); }
-}
-refreshUnsplashVisibility();
+function reflectKeys(){ nasaKeyLbl.textContent=NASA_KEY; unsplashKeyLbl.textContent=UNSPLASH_KEY||"unset"; }
+reflectKeys();
+
+document.getElementById("setNasaKey").onclick=()=>{
+  const v=prompt("Enter NASA API key:", NASA_KEY==="DEMO_KEY"?"":NASA_KEY);
+  if(v&&v.trim()){NASA_KEY=v.trim(); LS.setNasaKey(NASA_KEY); reflectKeys(); loadAPODDaily(); rerollAPOD(); saveProfile(true);}
+};
+document.getElementById("useDemo").onclick=()=>{ NASA_KEY="DEMO_KEY"; LS.setNasaKey(NASA_KEY); reflectKeys(); loadAPODDaily(); rerollAPOD(); saveProfile(true); };
+document.getElementById("setUnsplashKey").onclick=()=>{
+  const v=prompt("Enter Unsplash access key:", UNSPLASH_KEY||"");
+  if(v&&v.trim()){UNSPLASH_KEY=v.trim(); LS.setUnsplashKey(UNSPLASH_KEY); reflectKeys(); refreshUnsplashVisibility(); saveProfile(true);}
+};
 
 /*** HELPERS ***/
 const fmtDate = d => new Date(d).toLocaleString(undefined,{year:'numeric',month:'long',day:'numeric'});
@@ -337,6 +338,10 @@ function renderMedia(container, item){
 }
 function downloadURL(url, name){ const a=document.createElement("a"); a.href=url; a.download=(name||"download").replace(/[^a-z0-9\-_]+/gi,"_")+".jpg"; document.body.appendChild(a); a.click(); a.remove(); }
 
+/*** FAVORITES helpers (UI state) ***/
+function isFaved(date){ return FAVS.some(f=>f.date===date); }
+function updateFavBtn(btn, apod){ if(!apod) return; btn.textContent = isFaved(apod.date) ? "★ Favorited" : "♡ Favorite"; }
+
 /*** APOD ***/
 async function apodFetch(params={}){
   const u=new URL("https://api.nasa.gov/planetary/apod");
@@ -350,8 +355,10 @@ async function apodFetch(params={}){
 const apodDailyMedia=document.getElementById("apodDailyMedia"),
       apodDailyInfo=document.getElementById("apodDailyInfo"),
       apodDailyTitle=document.getElementById("apodDailyTitle"),
-      apodDailyExpl=document.getElementById("apodDailyExpl");
+      apodDailyExpl=document.getElementById("apodDailyExpl"),
+      apodDailyFavBtn=document.getElementById("apodDailyFav");
 let apodDaily=null;
+
 async function loadAPODDaily(){
   apodDailyInfo.textContent="Loading…"; apodDailyTitle.textContent=""; apodDailyExpl.textContent=""; apodDailyMedia.innerHTML="";
   try{
@@ -361,18 +368,21 @@ async function loadAPODDaily(){
     apodDailyInfo.textContent=`${fmtDate(apod.date)} • © NASA/APOD`;
     apodDailyTitle.textContent=apod.title||"";
     apodDailyExpl.textContent=apod.explanation||"";
+    updateFavBtn(apodDailyFavBtn, apodDaily);
   }catch(e){ apodDailyInfo.textContent=e.message||"Failed"; }
 }
 document.getElementById("apodDailyRefresh").onclick=loadAPODDaily;
 document.getElementById("apodDailyOpen").onclick=()=>{const u=apodDaily && bestImg(apodDaily); if(!u) return alert("No image"); window.open(u,"_blank","noreferrer");};
 document.getElementById("apodDailyDL").onclick=()=>{const u=apodDaily && bestImg(apodDaily); if(!u) return alert("No image"); downloadURL(u, apodDaily.title||"apod");};
-document.getElementById("apodDailyFav").onclick=()=>{ if(apodDaily) toggleFav(apodDaily); };
+apodDailyFavBtn.onclick=()=>{ if(apodDaily){ toggleFav(apodDaily); updateFavBtn(apodDailyFavBtn, apodDaily); } };
 
 const apodRndMedia=document.getElementById("apodRndMedia"),
       apodRndInfo=document.getElementById("apodRndInfo"),
       apodRndTitle=document.getElementById("apodRndTitle"),
-      apodRndExpl=document.getElementById("apodRndExpl");
+      apodRndExpl=document.getElementById("apodRndExpl"),
+      apodRndFavBtn=document.getElementById("apodRndFav");
 let apodRnd=null;
+
 async function rerollAPOD(){
   apodRndInfo.textContent="Loading random…"; apodRndTitle.textContent=""; apodRndExpl.textContent=""; apodRndMedia.innerHTML="";
   try{
@@ -383,12 +393,13 @@ async function rerollAPOD(){
     apodRndInfo.textContent=`${fmtDate(apod.date)} • © NASA/APOD`;
     apodRndTitle.textContent=apod.title||"";
     apodRndExpl.textContent=apod.explanation||"";
+    updateFavBtn(apodRndFavBtn, apodRnd);
   }catch(e){ apodRndInfo.textContent=e.message||"Failed"; }
 }
 document.getElementById("apodRndReroll").onclick=rerollAPOD;
 document.getElementById("apodRndOpen").onclick=()=>{const u=apodRnd && bestImg(apodRnd); if(!u) return alert("No image"); window.open(u,"_blank","noreferrer");};
 document.getElementById("apodRndDL").onclick=()=>{const u=apodRnd && bestImg(apodRnd); if(!u) return alert("No image"); downloadURL(u, apodRnd.title||"apod");};
-document.getElementById("apodRndFav").onclick=()=>{ if(apodRnd) toggleFav(apodRnd); };
+apodRndFavBtn.onclick=()=>{ if(apodRnd){ toggleFav(apodRnd); updateFavBtn(apodRndFavBtn, apodRnd); } };
 
 function toggleFav(apod){
   const idx=FAVS.findIndex(f=>f.date===apod.date);
@@ -396,24 +407,24 @@ function toggleFav(apod){
   else FAVS.unshift({date:apod.date,title:apod.title,media_type:apod.media_type,url:apod.url||null,hdurl:apod.hdurl||null,thumbnail_url:apod.thumbnail_url||null});
   LS.setFavs(FAVS);
   renderFavs();
-  saveProfile();
+  saveProfile(true);
 }
+
 const favGrid=document.getElementById("favGrid");
 function renderFavs(){
   favGrid.innerHTML="";
   for(const f of FAVS){
     const div=document.createElement("div"); div.className="thumb";
-    const src = f.thumbnail_url || f.hdurl || f.url;
-    div.innerHTML = `<img alt="thumb"><div class="label">${f.title || f.date}</div>`;
+    const src=f.thumbnail_url||f.hdurl||f.url;
+    div.innerHTML=`<img alt="thumb"><div class="label">${f.title||f.date}</div>`;
     const img=div.querySelector("img"); img.src=src; img.alt=f.title||f.date;
-    div.onclick = ()=>{ window.open(src, "_blank", "noreferrer"); };
+    div.onclick=()=>window.open(src,"_blank","noreferrer");
     favGrid.appendChild(div);
   }
+  // also refresh the buttons if the currently loaded APODs are visible
+  updateFavBtn(apodDailyFavBtn, apodDaily||{date:""});
+  updateFavBtn(apodRndFavBtn, apodRnd||{date:""});
 }
-document.getElementById("favExport").onclick=()=>{ const blob=new Blob([JSON.stringify(FAVS,null,2)],{type:"application/json"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="apod-favorites.json"; a.click(); URL.revokeObjectURL(url); };
-document.getElementById("favImport").onclick=()=>{ const inp=document.createElement("input"); inp.type="file"; inp.accept="application/json"; inp.onchange=()=>{ const f=inp.files?.[0]; if(!f) return; const rd=new FileReader(); rd.onload=()=>{ try{ const arr=JSON.parse(rd.result); if(Array.isArray(arr)){ FAVS=arr; LS.setFavs(FAVS); renderFavs(); saveProfile(); } }catch(e){ alert("Import failed: "+e.message);} }; rd.readAsText(f); }; inp.click(); };
-document.getElementById("favClear").onclick=()=>{ if(!confirm("Clear all favorites?")) return; FAVS=[]; LS.setFavs(FAVS); renderFavs(); saveProfile(); };
-document.getElementById("favSync").onclick=()=>saveProfile(true);
 
 /*** Mars Rover ***/
 const marsMedia=document.getElementById("marsMedia"),
@@ -437,7 +448,7 @@ async function loadMars(){
   marsInfo.textContent=`${pick.rover.name} • ${pick.camera.full_name} • Sol ${pick.sol} • ${pick.earth_date}`;
 }
 document.getElementById("marsLoad").onclick=loadMars;
-document.getElementById("marsPrev").onclick=()=>{const s=document.getElementById("sol"); s.value=Math.max(0, (parseInt(s.value||"0",10)-1)); loadMars();};
+document.getElementById("marsPrev").onclick=()=>{const s=document.getElementById("sol"); s.value=Math.max(0,(parseInt(s.value||"0",10)-1)); loadMars();};
 document.getElementById("marsNext").onclick=()=>{const s=document.getElementById("sol"); s.value=(parseInt(s.value||"0",10)+1); loadMars();};
 
 /*** EPIC ***/
@@ -445,7 +456,7 @@ const epicDate=document.getElementById("epicDate"),
       epicMedia=document.getElementById("epicMedia"),
       epicInfo=document.getElementById("epicInfo");
 let epicList=[], epicIdx=0;
-epicDate.value = (()=>{ const t=new Date(); t.setDate(t.getDate()-1); return t.toISOString().slice(0,10); })();
+epicDate.value=(()=>{const t=new Date(); t.setDate(t.getDate()-1); return t.toISOString().slice(0,10);})();
 async function loadEPIC(){
   epicMedia.innerHTML=""; epicInfo.textContent="Loading…";
   const date=epicDate.value;
@@ -453,7 +464,7 @@ async function loadEPIC(){
   const r=await fetch(u);
   if(!r.ok){ epicInfo.textContent="EPIC error: "+r.status; return; }
   epicList=await r.json();
-  if(!Array.isArray(epicList) || !epicList.length){ epicInfo.textContent="No images for that date."; return; }
+  if(!Array.isArray(epicList)||!epicList.length){ epicInfo.textContent="No images for that date."; return; }
   epicIdx=0; renderEPIC();
 }
 function epicImageURL(rec){
@@ -520,6 +531,12 @@ document.getElementById("wxGo").onclick=async()=>{
 
 /*** Unsplash ***/
 let usPhoto=null;
+function refreshUnsplashVisibility(){
+  const tab=document.querySelector('.tab[data-tab="unsplash"]');
+  const panel=document.getElementById('unsplash');
+  if(!UNSPLASH_KEY){ tab?.classList.add('hidden'); panel?.classList.add('hidden'); }
+  else { tab?.classList.remove('hidden'); panel?.classList.remove('hidden'); }
+}
 document.getElementById("usRandom").onclick=async()=>{
   const q=document.getElementById("usQuery").value.trim()||"space";
   const media=document.getElementById("usMedia"), info=document.getElementById("usInfo"), credit=document.getElementById("usCredit");
@@ -582,7 +599,7 @@ onAuthStateChanged(auth, async (user) => {
     acctStatus.textContent = `Signed in as ${USER.displayName || USER.email || USER.uid}`;
     signInBtn.style.display = "none";
     signOutBtn.style.display = "inline-block";
-    await loadProfile();
+    await loadProfile(); // pulls + merges + pushes back
   } else {
     acctStatus.textContent = "Not signed in";
     signInBtn.style.display = "inline-block";
@@ -590,22 +607,31 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-/*** PROFILE LOAD/SAVE ***/
+/*** PROFILE LOAD/SAVE (merge: local wins if non-empty) ***/
 async function loadProfile(){
   if(!USER) return;
   try{
     const ref = doc(db, "users", USER.uid);
     const snap = await getDoc(ref);
     if (snap.exists()) {
-      const data = snap.data();
-      if (data.nasaKey){ NASA_KEY=data.nasaKey; LS.setNasaKey(NASA_KEY); nasaKeyLbl.textContent=NASA_KEY; }
-      if (data.unsplashKey){ UNSPLASH_KEY=data.unsplashKey; LS.setUnsplashKey(UNSPLASH_KEY); unsplashKeyLbl.textContent=UNSPLASH_KEY; refreshUnsplashVisibility(); }
-      if (Array.isArray(data.favs)){ FAVS=data.favs; LS.setFavs(FAVS); }
+      const srv = snap.data() || {};
+      // Prefer non-empty local values, otherwise use server values
+      const merged = {
+        nasaKey: (LS.nasaKey() && LS.nasaKey()!=="") ? LS.nasaKey() : (srv.nasaKey||""),
+        unsplashKey: (LS.unsplashKey() && LS.unsplashKey()!=="") ? LS.unsplashKey() : (srv.unsplashKey||""),
+        favs: (Array.isArray(LS.favs()) && LS.favs().length) ? LS.favs() : (Array.isArray(srv.favs)?srv.favs:[])
+      };
+      NASA_KEY = merged.nasaKey || "DEMO_KEY";
+      UNSPLASH_KEY = merged.unsplashKey || "";
+      FAVS = merged.favs || [];
+      // Persist merged back to both places so all devices stay consistent
+      await setDoc(ref, { nasaKey: NASA_KEY, unsplashKey: UNSPLASH_KEY, favs: FAVS }, { merge:true });
+      LS.setNasaKey(NASA_KEY); LS.setUnsplashKey(UNSPLASH_KEY); LS.setFavs(FAVS);
     } else {
       await setDoc(ref, { nasaKey: NASA_KEY, unsplashKey: UNSPLASH_KEY, favs: FAVS });
     }
   } catch (e){ console.warn("loadProfile:", e); }
-  renderFavs();
+  reflectKeys(); refreshUnsplashVisibility(); renderFavs(); updateFavBtn(apodDailyFavBtn, apodDaily||{date:""}); updateFavBtn(apodRndFavBtn, apodRnd||{date:""});
 }
 async function saveProfile(force=false){
   if(!USER){ if(force) alert("Sign in to sync."); return; }
@@ -613,14 +639,16 @@ async function saveProfile(force=false){
     const ref = doc(db, "users", USER.uid);
     await setDoc(ref, { nasaKey: NASA_KEY, unsplashKey: UNSPLASH_KEY, favs: FAVS }, { merge:true });
     if(force) alert("Synced!");
-  }catch(e){ if(force) alert("Sync failed: "+e.message); }
+  }catch(e){ if(force) alert("Sync failed: "+e.message); console.error(e); }
 }
 
 /*** INIT ***/
 renderFavs();
 loadAPODDaily();
 rerollAPOD();
+refreshUnsplashVisibility();
 </script>
 </body>
 </html>
+
 

@@ -1,714 +1,213 @@
-<!doctype html>
-<html lang="en" data-theme="dark">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Space Hub — NASA + SpaceX + Weather + Accounts</title>
-  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
-  <!-- Leaflet for ISS map -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <style>
-    :root{--bg:#0b1020;--card:#121936cc;--text:#eaf0ff;--muted:#9fb0d1;--accent:#7aa2f7;--border:#ffffff1e}
-    [data-theme="light"]{--bg:#f5f7ff;--card:#ffffff;--text:#0b1020;--muted:#4b5b86;--accent:#2563eb;--border:#0b10202a}
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:radial-gradient(1000px 600px at 20% -10%,#19244d 0%,var(--bg) 60%);color:var(--text)}
-    header{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-    h1{font-size:20px;margin:0;display:flex;gap:10px;align-items:center}
-    .btn{background:var(--accent);color:#061022;border:0;border-radius:999px;padding:8px 12px;font-weight:700;cursor:pointer}
-    .btn.secondary{background:transparent;color:inherit;border:1px solid var(--border)}
-    .btn.ghost{background:transparent;border:1px dashed var(--border);color:inherit}
-    .pill{padding:2px 8px;border-radius:999px;border:1px solid var(--border);font-size:12px;color:var(--muted)}
-    main{max-width:1200px;margin:0 auto;padding:16px;display:grid;gap:14px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 30px #0004;overflow:hidden}
-    .tabs{display:flex;gap:8px;flex-wrap:wrap}
-    .tab{padding:10px 12px;border:1px solid var(--border);border-radius:999px;background:transparent;color:inherit;cursor:pointer}
-    .tab.active{background:var(--accent);color:#061022;border:0}
-    .panel{display:none}
-    .panel.active{display:block}
-    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .media{display:flex;align-items:center;justify-content:center;background:#060a18}
-    [data-theme="light"] .media{background:#e9eefc}
-    img,iframe,video{max-width:100%;width:100%;height:auto;display:block}
-    .content{padding:14px;display:grid;gap:10px}
-    .title{font-weight:800;margin:0}
-    .meta{color:var(--muted);font-size:14px}
-    .grid2{display:grid;grid-template-columns:1fr;gap:14px}
-    @media(min-width:980px){.grid2{grid-template-columns:1fr 1fr}}
-    input,select{padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:inherit}
-    label{display:flex;gap:6px;align-items:center}
-    .key{font-family:ui-monospace,Menlo,Consolas,monospace;padding:2px 6px;border-radius:6px;border:1px solid var(--border)}
-    .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
-    .thumb{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#070b18}
-    [data-theme="light"] .thumb{background:#e9eefc}
-    .thumb img{width:100%;height:100px;object-fit:cover;display:block}
-    .thumb .label{padding:8px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    /* ISS map sizing */
-    #issMap{width:100%;height:380px}
-    footer{color:var(--muted);text-align:center;font-size:12px;padding:10px 0 20px}
-    .hidden{display:none !important}
-  </style>
-</head>
-<body>
-<header>
-  <h1>🛰️ Space Hub</h1>
-  <div class="row">
-    <span class="pill" id="themeState">Dark</span>
-    <button class="btn secondary" id="toggleTheme">Toggle Theme</button>
-  </div>
-</header>
+import React, { useEffect, useMemo, useRef, useState } from "react"; import { Card, CardContent } from "@/components/ui/card"; import { Button } from "@/components/ui/button"; import { Input } from "@/components/ui/input"; import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"; import { Badge } from "@/components/ui/badge"; import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"; import { Textarea } from "@/components/ui/textarea"; import { ScrollArea } from "@/components/ui/scroll-area"; import { Separator } from "@/components/ui/separator"; import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; import { Trash2, Save, Play, Plus, Delete, RotateCcw, Sigma, Settings2 } from "lucide-react"; import * as math from "mathjs";
 
-<main>
-  <!-- Account + Keys card -->
-  <section class="card" style="padding:12px">
-    <div class="row" style="justify-content:space-between">
-      <div class="row">
-        <strong id="acctStatus">Not signed in</strong>
-        <span class="pill">Accounts by Firebase (no backend code)</span>
-      </div>
-      <div class="row">
-        <button id="signIn" class="btn">Sign in with Google</button>
-        <button id="signOut" class="btn secondary" style="display:none">Sign out</button>
-      </div>
-    </div>
-    <hr style="border-color:var(--border);opacity:.3">
-    <div class="row" style="justify-content:space-between">
-      <div class="row">
-        <span>NASA key: <span id="nasaKeyLbl" class="key">DEMO_KEY</span></span>
-        <span class="pill">No card needed</span>
-      </div>
-      <div class="row">
-        <button id="setNasaKey" class="btn">Set NASA key</button>
-        <button id="useDemo" class="btn secondary">Use DEMO_KEY</button>
-        <a class="btn ghost" href="https://api.nasa.gov/" target="_blank" rel="noreferrer">Get NASA key</a>
-      </div>
-    </div>
-    <div class="row" style="margin-top:8px">
-      <span>Unsplash key: <span id="unsplashKeyLbl" class="key">unset</span></span>
-      <button id="setUnsplashKey" class="btn secondary">Set Unsplash key</button>
-      <a class="btn ghost" href="https://unsplash.com/developers" target="_blank" rel="noreferrer">Get Unsplash key</a>
-    </div>
-    <p class="meta" style="margin:6px 2px 0">Keys & favorites are saved to your account when signed in; otherwise stored locally in your browser.</p>
-  </section>
+/**
 
-  <!-- Tabs -->
-  <div class="tabs" id="tabs">
-    <button class="tab active" data-tab="apod">APOD</button>
-    <button class="tab" data-tab="mars">Mars Rover</button>
-    <button class="tab" data-tab="epic">EPIC Earth</button>
-    <button class="tab" data-tab="spacex">SpaceX</button>
-    <button class="tab" data-tab="weather">Weather</button>
-    <button class="tab" data-tab="unsplash">Unsplash</button>
-    <button class="tab" data-tab="iss">ISS Live</button>
-    <button class="tab" data-tab="account">Account</button>
-  </div>
+Nova SuperCalc — a comprehensive scientific calculator with:
 
-  <!-- APOD -->
-  <section id="apod" class="panel active">
-    <div class="grid2">
-      <!-- Daily -->
-      <section class="card">
-        <div id="apodDailyMedia" class="media"></div>
-        <div class="content">
-          <div class="row" style="justify-content:space-between">
-            <div id="apodDailyInfo" class="meta">Loading today…</div>
-            <div class="row">
-              <button id="apodDailyRefresh" class="btn secondary">Refresh</button>
-              <button id="apodDailyFav" class="btn ghost">♡ Favorite</button>
-              <button id="apodDailyOpen" class="btn ghost">Open HD</button>
-              <button id="apodDailyDL" class="btn ghost">Download</button>
-            </div>
-          </div>
-          <h3 id="apodDailyTitle" class="title"></h3>
-          <div id="apodDailyExpl" class="meta"></div>
-        </div>
-      </section>
+Full scientific keypad (trig, hyperbolic, logs, roots, nPr/nCr, mod, %, factorial, constants, Ans, memory)
 
-      <!-- Random -->
-      <section class="card">
-        <div id="apodRndMedia" class="media"></div>
-        <div class="content">
-          <div class="row" style="justify-content:space-between">
-            <div id="apodRndInfo" class="meta">Click Re-roll</div>
-            <div class="row">
-              <button id="apodRndReroll" class="btn">Re-roll 🔄</button>
-              <button id="apodRndFav" class="btn ghost">♡ Favorite</button>
-              <button id="apodRndOpen" class="btn ghost">Open HD</button>
-              <button id="apodRndDL" class="btn ghost">Download</button>
-            </div>
-          </div>
-          <h3 id="apodRndTitle" class="title"></h3>
-          <div id="apodRndExpl" class="meta"></div>
-        </div>
-      </section>
-    </div>
 
-    <!-- Favorites gallery -->
-    <section class="card" style="margin-top:14px;padding:14px">
-      <div class="row" style="justify-content:space-between">
-        <h3 class="title" style="margin:0">⭐ Favorites</h3>
-        <div class="row">
-          <button id="favExport" class="btn secondary">Export JSON</button>
-          <button id="favImport" class="btn ghost">Import JSON</button>
-          <button id="favClear" class="btn ghost">Clear All</button>
-          <button id="favSync" class="btn">Sync Now</button>
-        </div>
-      </div>
-      <div id="favGrid" class="gallery" style="margin-top:10px"></div>
-      <p class="meta">Favorites are saved to your account when signed in, else locally.</p>
-    </section>
-  </section>
+Degrees/Radians toggle
 
-  <!-- Mars Rover -->
-  <section id="mars" class="panel">
-    <section class="card">
-      <div class="content">
-        <div class="row">
-          <label>Rover
-            <select id="rover">
-              <option>curiosity</option>
-              <option>perseverance</option>
-              <option>opportunity</option>
-              <option>spirit</option>
-            </select>
-          </label>
-          <label>Sol <input id="sol" type="number" min="0" value="1000"/></label>
-          <label>Camera
-            <select id="camera">
-              <option value="">Any</option>
-              <option value="FHAZ">FHAZ</option>
-              <option value="RHAZ">RHAZ</option>
-              <option value="NAVCAM">NAVCAM</option>
-              <option value="MAST">MAST</option>
-              <option value="PANCAM">PANCAM</option>
-              <option value="CHEMCAM">CHEMCAM</option>
-            </select>
-          </label>
-          <button id="marsLoad" class="btn">Load</button>
-          <button id="marsPrev" class="btn secondary">Sol -1</button>
-          <button id="marsNext" class="btn secondary">Sol +1</button>
-        </div>
-      </div>
-      <div id="marsMedia" class="media"></div>
-      <div class="content">
-        <div id="marsInfo" class="meta">—</div>
-      </div>
-    </section>
-  </section>
 
-  <!-- EPIC Earth -->
-  <section id="epic" class="panel">
-    <section class="card">
-      <div class="content">
-        <div class="row">
-          <label>Date <input type="date" id="epicDate"/></label>
-          <button id="epicLoad" class="btn">Load</button>
-        </div>
-        <div id="epicInfo" class="meta">Pick a date with images.</div>
-      </div>
-      <div id="epicMedia" class="media"></div>
-      <div class="content">
-        <div class="row">
-          <button id="epicPrev" class="btn secondary">Prev</button>
-          <button id="epicNext" class="btn secondary">Next</button>
-        </div>
-      </div>
-    </section>
-  </section>
+History tape
 
-  <!-- SpaceX -->
-  <section id="spacex" class="panel">
-    <section class="card">
-      <div class="content">
-        <div class="row">
-          <button id="sxUpcoming" class="btn">Load Upcoming</button>
-          <button id="sxLatest" class="btn secondary">Latest Launch</button>
-        </div>
-      </div>
-      <div class="content" id="sxList"></div>
-    </section>
-  </section>
 
-  <!-- Weather -->
-  <section id="weather" class="panel">
-    <section class="card">
-      <div class="content">
-        <div class="row">
-          <label>Location <input id="wxQuery" placeholder="e.g., San Juan, PR"/></label>
-          <button id="wxGo" class="btn">Get Weather</button>
-        </div>
-        <div id="wxInfo" class="meta">Powered by Open-Meteo & OpenStreetMap (no keys).</div>
-      </div>
-      <div class="content">
-        <div id="wxNow" class="title"></div>
-        <div id="wxHourly" class="meta"></div>
-      </div>
-    </section>
-  </section>
+User formulas:
 
-  <!-- Unsplash -->
-  <section id="unsplash" class="panel">
-    <section class="card">
-      <div class="content">
-        <div class="row">
-          <label>Query <input id="usQuery" placeholder="nebula, galaxy, rocket"/></label>
-          <button id="usRandom" class="btn">Random Photo</button>
-          <button id="usDL" class="btn secondary">Download</button>
-        </div>
-        <div id="usInfo" class="meta">Requires Unsplash access key (free). Set it above.</div>
-      </div>
-      <div id="usMedia" class="media"></div>
-      <div class="content">
-        <div id="usCredit" class="meta"></div>
-      </div>
-    </section>
-  </section>
 
-  <!-- ISS -->
-  <section id="iss" class="panel">
-    <section class="card">
-      <div class="content">
-        <div class="row" style="justify-content:space-between">
-          <strong>ISS Live Tracker</strong>
-          <div class="row">
-            <button id="issStart" class="btn">Start</button>
-            <button id="issStop" class="btn secondary">Stop</button>
-          </div>
-        </div>
-        <div id="issInfo" class="meta">Press Start to begin tracking.</div>
-      </div>
-      <div id="issMap"></div>
-    </section>
-  </section>
+• JS Expression mode powered by math.js
 
-  <!-- Account tab -->
-  <section id="account" class="panel">
-    <section class="card">
-      <div class="content">
-        <h3 class="title" style="margin:0">Account</h3>
-        <div class="meta" id="acctDetail">Sign in to sync keys & favorites across devices.</div>
-      </div>
-    </section>
-  </section>
-</main>
+• Python mode powered by Pyodide (loaded in-browser)
 
-<footer>Data: NASA, SpaceX, Open-Meteo, OSM, Unsplash, WhereTheISS. Auth & DB: Firebase (free tier).</footer>
+Parameter forms & quick run
 
-<!-- App code -->
-<script type="module">
-/*** THEME ***/
-const themeKey="spacehub_theme";
-const themeState=document.getElementById("themeState");
-function setTheme(t){document.documentElement.setAttribute("data-theme",t); localStorage.setItem(themeKey,t); themeState.textContent=t[0].toUpperCase()+t.slice(1);}
-setTheme(localStorage.getItem(themeKey)||"dark");
-document.getElementById("toggleTheme").onclick=()=>setTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark");
 
-/*** TABS ***/
-document.querySelectorAll(".tab").forEach(b=>{
-  b.onclick=()=>{
-    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-    document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
-    b.classList.add("active");
-    const panel = document.getElementById(b.dataset.tab);
-    panel.classList.add("active");
-    if (b.dataset.tab === "iss") {
-      initISSMap();
-      setTimeout(()=>{ if (issMap) issMap.invalidateSize(); }, 60);
-    }
-  };
-});
+LocalStorage persistence
 
-/*** LOCAL STORAGE FALLBACK ***/
-const LS = {
-  nasaKey: ()=>localStorage.getItem("nasa_api_key")||"DEMO_KEY",
-  setNasaKey: v=>localStorage.setItem("nasa_api_key", v),
-  unsplashKey: ()=>localStorage.getItem("unsplash_api_key")||"",
-  setUnsplashKey: v=>localStorage.setItem("unsplash_api_key", v),
-  favs: ()=>JSON.parse(localStorage.getItem("apod_favs_v1")||"[]"),
-  setFavs: arr=>localStorage.setItem("apod_favs_v1", JSON.stringify(arr)),
-};
 
-/*** STATE ***/
-let NASA_KEY = LS.nasaKey();
-let UNSPLASH_KEY = LS.unsplashKey();
-let FAVS = LS.favs(); // [{date,title,media_type,url,hdurl,thumbnail_url}]
-let USER = null;
+Tips:
 
-/*** UI: KEYS ***/
-const nasaKeyLbl=document.getElementById("nasaKeyLbl");
-const unsplashKeyLbl=document.getElementById("unsplashKeyLbl");
-nasaKeyLbl.textContent = NASA_KEY;
-unsplashKeyLbl.textContent = UNSPLASH_KEY || "unset";
-document.getElementById("setNasaKey").onclick=()=>{ const v=prompt("Enter NASA API key:", NASA_KEY==="DEMO_KEY"?"":NASA_KEY); if(v&&v.trim()){NASA_KEY=v.trim(); LS.setNasaKey(NASA_KEY); nasaKeyLbl.textContent=NASA_KEY; loadAPODDaily(); rerollAPOD(); saveProfile(); }};
-document.getElementById("useDemo").onclick=()=>{ NASA_KEY="DEMO_KEY"; LS.setNasaKey(NASA_KEY); nasaKeyLbl.textContent=NASA_KEY; loadAPODDaily(); rerollAPOD(); saveProfile(); };
-document.getElementById("setUnsplashKey").onclick=()=>{ const v=prompt("Enter Unsplash access key:", UNSPLASH_KEY||""); if(v&&v.trim()){UNSPLASH_KEY=v.trim(); LS.setUnsplashKey(UNSPLASH_KEY); unsplashKeyLbl.textContent=UNSPLASH_KEY; refreshUnsplashVisibility(); saveProfile(); }};
-function refreshUnsplashVisibility(){
-  const tab=document.querySelector('.tab[data-tab="unsplash"]');
-  const panel=document.getElementById('unsplash');
-  if(!UNSPLASH_KEY){ tab?.classList.add('hidden'); panel?.classList.add('hidden'); } else { tab?.classList.remove('hidden'); panel?.classList.remove('hidden'); }
-}
-refreshUnsplashVisibility();
+You can type directly: e.g. sin(30)+3^2 (switch DEG/RAD as needed)
 
-/*** HELPERS ***/
-const fmtDate = d => new Date(d).toLocaleString(undefined,{year:'numeric',month:'long',day:'numeric'});
-const bestImg = apod => apod.hdurl||apod.url||apod.thumbnail_url||null;
-function renderMedia(container, item){
-  container.innerHTML="";
-  if(!item){container.textContent="No media.";return;}
-  if(item.media_type==="video" || /youtube|vimeo|player/.test(item.url||"")){
-    const ifr=document.createElement("iframe");
-    ifr.src=item.url; ifr.allowFullscreen=true; ifr.loading="lazy"; ifr.style.aspectRatio="16/9";
-    container.appendChild(ifr);
-  } else {
-    const img=new Image(); img.loading="lazy"; img.alt=item.title||"image"; img.src=bestImg(item)||item.image||item.url;
-    container.appendChild(img);
-  }
-}
-async function downloadToFile(url, filename="download.jpg"){
-  try{
-    const r = await fetch(url, {mode:"cors"});
-    const blob = await r.blob();
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = filename.replace(/[^a-z0-9\-_\.]+/gi,"_");
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
-  }catch(e){ alert("Download failed: " + (e.message||e)); }
-}
 
-/*** APOD (Daily + Random + Favorites) ***/
-async function apodFetch(params={}){
-  const u=new URL("https://api.nasa.gov/planetary/apod");
-  u.searchParams.set("api_key",NASA_KEY);
-  u.searchParams.set("thumbs","true");
-  Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
-  const r=await fetch(u);
-  if(!r.ok) throw new Error("APOD error: "+r.status);
-  return r.json();
-}
-const apodDailyMedia=document.getElementById("apodDailyMedia"),
-      apodDailyInfo=document.getElementById("apodDailyInfo"),
-      apodDailyTitle=document.getElementById("apodDailyTitle"),
-      apodDailyExpl=document.getElementById("apodDailyExpl");
-let apodDaily=null;
-async function loadAPODDaily(){
-  apodDailyInfo.textContent="Loading…"; apodDailyTitle.textContent=""; apodDailyExpl.textContent=""; apodDailyMedia.innerHTML="";
-  try{
-    const apod=await apodFetch();
-    apodDaily=apod;
-    renderMedia(apodDailyMedia, apod);
-    apodDailyInfo.textContent=`${fmtDate(apod.date)} • © NASA/APOD`;
-    apodDailyTitle.textContent=apod.title||"";
-    apodDailyExpl.textContent=apod.explanation||"";
-  }catch(e){ apodDailyInfo.textContent=e.message||"Failed"; }
-}
-document.getElementById("apodDailyRefresh").onclick=loadAPODDaily;
-document.getElementById("apodDailyOpen").onclick=()=>{const u=apodDaily && bestImg(apodDaily); if(!u) return alert("No image"); window.open(u,"_blank","noreferrer");};
-document.getElementById("apodDailyDL").onclick=()=>{const u=apodDaily && bestImg(apodDaily); if(!u) return alert("No image"); downloadToFile(u, (apodDaily.title||"apod")+".jpg");};
-document.getElementById("apodDailyFav").onclick=()=>{ if(apodDaily) toggleFav(apodDaily); };
+Use built-ins: pi, e, tau, mod, sqrt(), log(), ln(x) as log(x), log10(x)
 
-const apodRndMedia=document.getElementById("apodRndMedia"),
-      apodRndInfo=document.getElementById("apodRndInfo"),
-      apodRndTitle=document.getElementById("apodRndTitle"),
-      apodRndExpl=document.getElementById("apodRndExpl");
-let apodRnd=null;
-async function rerollAPOD(){
-  apodRndInfo.textContent="Loading random…"; apodRndTitle.textContent=""; apodRndExpl.textContent=""; apodRndMedia.innerHTML="";
-  try{
-    const res=await apodFetch({count:1});
-    const apod=Array.isArray(res)?res[0]:res;
-    apodRnd=apod;
-    renderMedia(apodRndMedia, apod);
-    apodRndInfo.textContent=`${fmtDate(apod.date)} • © NASA/APOD`;
-    apodRndTitle.textContent=apod.title||"";
-    apodRndExpl.textContent=apod.explanation||"";
-  }catch(e){ apodRndInfo.textContent=e.message||"Failed"; }
-}
-document.getElementById("apodRndReroll").onclick=rerollAPOD;
-document.getElementById("apodRndOpen").onclick=()=>{const u=apodRnd && bestImg(apodRnd); if(!u) return alert("No image"); window.open(u,"_blank","noreferrer");};
-document.getElementById("apodRndDL").onclick=()=>{const u=apodRnd && bestImg(apodRnd); if(!u) return alert("No image"); downloadToFile(u, (apodRnd.title||"apod")+".jpg");};
-document.getElementById("apodRndFav").onclick=()=>{ if(apodRnd) toggleFav(apodRnd); };
 
-function toggleFav(apod){
-  const idx=FAVS.findIndex(f=>f.date===apod.date);
-  if(idx>=0) FAVS.splice(idx,1);
-  else FAVS.unshift({date:apod.date,title:apod.title,media_type:apod.media_type,url:apod.url||null,hdurl:apod.hdurl||null,thumbnail_url:apod.thumbnail_url||null});
-  LS.setFavs(FAVS);
-  renderFavs();
-  saveProfile();
-}
-const favGrid=document.getElementById("favGrid");
-function renderFavs(){
-  favGrid.innerHTML="";
-  for(const f of FAVS){
-    const div=document.createElement("div"); div.className="thumb";
-    const src = f.thumbnail_url || f.hdurl || f.url;
-    div.innerHTML = `<img alt="thumb"><div class="label">${f.title || f.date}</div>`;
-    const img=div.querySelector("img"); img.src=src; img.alt=f.title||f.date;
-    div.onclick = ()=>{ window.open(src, "_blank", "noreferrer"); };
-    favGrid.appendChild(div);
-  }
-}
-document.getElementById("favExport").onclick=()=>{ const blob=new Blob([JSON.stringify(FAVS,null,2)],{type:"application/json"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="apod-favorites.json"; a.click(); URL.revokeObjectURL(url); };
-document.getElementById("favImport").onclick=()=>{ const inp=document.createElement("input"); inp.type="file"; inp.accept="application/json"; inp.onchange=()=>{ const f=inp.files?.[0]; if(!f) return; const rd=new FileReader(); rd.onload=()=>{ try{ const arr=JSON.parse(rd.result); if(Array.isArray(arr)){ FAVS=arr; LS.setFavs(FAVS); renderFavs(); saveProfile(); } }catch(e){ alert("Import failed: "+e.message);} }; rd.readAsText(f); }; inp.click(); };
-document.getElementById("favClear").onclick=()=>{ if(!confirm("Clear all favorites?")) return; FAVS=[]; LS.setFavs(FAVS); renderFavs(); saveProfile(); };
-document.getElementById("favSync").onclick=()=>saveProfile(true);
+nPr/nCr: use nPr(n,r), nCr(n,r) or buttons
 
-/*** Mars Rover ***/
-const marsMedia=document.getElementById("marsMedia"),
-      marsInfo=document.getElementById("marsInfo");
-async function loadMars(){
-  marsMedia.innerHTML=""; marsInfo.textContent="Loading…";
-  const rover=document.getElementById("rover").value.toLowerCase();
-  const sol=parseInt(document.getElementById("sol").value||"0",10);
-  const cam=document.getElementById("camera").value.trim();
-  const u=new URL("https://api.nasa.gov/mars-photos/api/v1/rovers/"+rover+"/photos");
-  u.searchParams.set("api_key",NASA_KEY);
-  u.searchParams.set("sol", String(sol));
-  if(cam) u.searchParams.set("camera", cam);
-  const r=await fetch(u);
-  if(!r.ok){ marsInfo.textContent="NASA Mars error: "+r.status; return; }
-  const data=await r.json();
-  if(!data.photos || !data.photos.length){ marsInfo.textContent="No photos for this combo. Try another sol/camera."; return; }
-  const pick=data.photos[Math.floor(Math.random()*data.photos.length)];
-  const img=new Image(); img.src=pick.img_src; img.alt="Mars photo";
-  marsMedia.appendChild(img);
-  marsInfo.textContent=`${pick.rover.name} • ${pick.camera.full_name} • Sol ${pick.sol} • ${pick.earth_date}`;
-}
-document.getElementById("marsLoad").onclick=loadMars;
-document.getElementById("marsPrev").onclick=()=>{const s=document.getElementById("sol"); s.value=Math.max(0, (parseInt(s.value||"0",10)-1)); loadMars();};
-document.getElementById("marsNext").onclick=()=>{const s=document.getElementById("sol"); s.value=(parseInt(s.value||"0",10)+1); loadMars();};
 
-/*** EPIC ***/
-const epicDate=document.getElementById("epicDate"),
-      epicMedia=document.getElementById("epicMedia"),
-      epicInfo=document.getElementById("epicInfo");
-let epicList=[], epicIdx=0;
-epicDate.value = (()=>{ const t=new Date(); t.setDate(t.getDate()-1); return t.toISOString().slice(0,10); })();
-async function loadEPIC(){
-  epicMedia.innerHTML=""; epicInfo.textContent="Loading…";
-  const date=epicDate.value;
-  const u=`https://api.nasa.gov/EPIC/api/natural/date/${date}?api_key=${NASA_KEY}`;
-  const r=await fetch(u);
-  if(!r.ok){ epicInfo.textContent="EPIC error: "+r.status; return; }
-  epicList=await r.json();
-  if(!Array.isArray(epicList) || !epicList.length){ epicInfo.textContent="No images for that date."; return; }
-  epicIdx=0; renderEPIC();
-}
-function epicImageURL(rec){
-  const d=new Date(rec.date);
-  const yyyy=d.getFullYear(), mm=String(d.getMonth()+1).padStart(2,"0"), dd=String(d.getDate()).padStart(2,"0");
-  return `https://api.nasa.gov/EPIC/archive/natural/${yyyy}/${mm}/${dd}/png/${rec.image}.png?api_key=${NASA_KEY}`;
-}
-function renderEPIC(){
-  epicMedia.innerHTML="";
-  const rec=epicList[epicIdx];
-  const img=new Image(); img.loading="lazy"; img.src=epicImageURL(rec);
-  epicMedia.appendChild(img);
-  epicInfo.textContent=`${fmtDate(rec.date)} • ${epicIdx+1}/${epicList.length}`;
-}
-document.getElementById("epicLoad").onclick=loadEPIC;
-document.getElementById("epicPrev").onclick=()=>{ if(epicList.length){ epicIdx=(epicIdx-1+epicList.length)%epicList.length; renderEPIC(); } };
-document.getElementById("epicNext").onclick=()=>{ if(epicList.length){ epicIdx=(epicIdx+1)%epicList.length; renderEPIC(); } };
+Random: rand() in [0,1), randint(a,b)
 
-/*** SpaceX ***/
-const sxList=document.getElementById("sxList");
-async function sxFetch(path){ const r=await fetch("https://api.spacexdata.com/v4/"+path); if(!r.ok) throw new Error("SpaceX error: "+r.status); return r.json(); }
-function card(html){ const d=document.createElement("div"); d.innerHTML=html; d.className="card"; d.style.padding="12px"; return d; }
-function launchCard(launch){
-  const t=new Date(launch.date_utc).toLocaleString();
-  return card(`<div class="content"><div class="row" style="justify-content:space-between"><strong>${launch.name}</strong><span class="meta">${t}</span></div><div class="meta">${launch.details||"No details."}</div>${launch.links?.webcast?`<a class="btn ghost" href="${launch.links.webcast}" target="_blank" rel="noreferrer">Webcast</a>`:""}</div>`);
-}
-document.getElementById("sxUpcoming").onclick=async()=>{ sxList.innerHTML=""; try{ const ups=await sxFetch("launches/upcoming"); ups.sort((a,b)=>new Date(a.date_utc)-new Date(b.date_utc)); ups.slice(0,5).forEach(l=>sxList.appendChild(launchCard(l))); }catch(e){ sxList.textContent=e.message; } };
-document.getElementById("sxLatest").onclick=async()=>{ sxList.innerHTML=""; try{ const latest=await sxFetch("launches/latest"); sxList.appendChild(launchCard(latest)); }catch(e){ sxList.textContent=e.message; } };
 
-/*** Weather (Open-Meteo + OSM) ***/
-async function geocode(q){
-  const u=new URL("https://nominatim.openstreetmap.org/search");
-  u.searchParams.set("q", q); u.searchParams.set("format","json"); u.searchParams.set("limit","1");
-  const r=await fetch(u, {headers:{"Accept":"application/json"}});
-  if(!r.ok) throw new Error("Geocode error: "+r.status);
-  const arr=await r.json(); return arr[0]||null;
-}
-async function openMeteo(lat, lon){
-  const u=new URL("https://api.open-meteo.com/v1/forecast");
-  u.searchParams.set("latitude", lat); u.searchParams.set("longitude", lon);
-  u.searchParams.set("current_weather","true");
-  u.searchParams.set("hourly","temperature_2m");
-  const r=await fetch(u); if(!r.ok) throw new Error("Weather error: "+r.status);
-  return r.json();
-}
-document.getElementById("wxGo").onclick=async()=>{
-  const q=document.getElementById("wxQuery").value.trim()||"San Juan, PR";
-  const info=document.getElementById("wxInfo"), now=document.getElementById("wxNow"), hourly=document.getElementById("wxHourly");
-  info.textContent="Geocoding…"; now.textContent=""; hourly.textContent="";
-  try{
-    const g=await geocode(q);
-    if(!g){ info.textContent="No match."; return; }
-    info.textContent=`${g.display_name} (${parseFloat(g.lat).toFixed(3)}, ${parseFloat(g.lon).toFixed(3)})`;
-    const wx=await openMeteo(g.lat, g.lon);
-    if(wx.current_weather){
-      now.textContent = `Now: ${wx.current_weather.temperature}°C • Wind ${wx.current_weather.windspeed} km/h`;
-    }
-    if(wx.hourly?.time && wx.hourly?.temperature_2m){
-      const next = wx.hourly.time.slice(0, 12).map((t,i)=>`${t.slice(11,16)}: ${wx.hourly.temperature_2m[i]}°C`);
-      hourly.textContent = "Next hours: " + next.join("  ·  ");
-    }
-  }catch(e){ info.textContent = e.message; }
-};
+Percent: 50% becomes 0.5; 200*10% = 20
 
-/*** Unsplash ***/
-let usPhoto=null;
-document.getElementById("usRandom").onclick=async()=>{
-  const q=document.getElementById("usQuery").value.trim()||"space";
-  const media=document.getElementById("usMedia"), info=document.getElementById("usInfo"), credit=document.getElementById("usCredit");
-  media.innerHTML=""; info.textContent="Loading…"; credit.textContent="";
-  if(!UNSPLASH_KEY){ info.textContent="Set Unsplash key first."; return; }
-  try{
-    const u=new URL("https://api.unsplash.com/photos/random");
-    u.searchParams.set("query", q); u.searchParams.set("orientation","landscape"); u.searchParams.set("client_id", UNSPLASH_KEY);
-    const r=await fetch(u); if(!r.ok) throw new Error("Unsplash error: "+r.status);
-    const p=await r.json(); usPhoto=p;
-    const img=new Image(); img.loading="lazy"; img.src=p.urls.regular; img.alt=p.alt_description||"Unsplash photo";
-    media.appendChild(img);
-    info.textContent = `“${(p.description||p.alt_description||"Untitled")}"`;
-    credit.innerHTML = `Photo by <a href="${p.user.links.html}?utm_source=SpaceHub&utm_medium=referral" target="_blank" rel="noreferrer">${p.user.name}</a> on Unsplash`;
-  }catch(e){ info.textContent=e.message; }
-};
-document.getElementById("usDL").onclick=()=>{ if(!usPhoto) return alert("No photo"); downloadToFile(usPhoto.links.download||usPhoto.urls.full||usPhoto.urls.raw,"unsplash.jpg"); };
 
-/*** FIREBASE (Auth + Firestore) ***/
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+Factorial: 5! or gamma(n+1) via button
 
-/* Replace these with YOUR OWN config from Firebase Console (Project settings → General → Web app) */
-const firebaseConfig = {
-  apiKey: "AIzaSyCjxG90jXrMW5BUK_pc-3C3pjupCdgQdIE",
-  authDomain: "space-hub-9a0a4.firebaseapp.com",
-  projectId: "space-hub-9a0a4",
-  storageBucket: "space-hub-9a0a4.appspot.com",
-  messagingSenderId: "325249598739",
-  appId: "1:325249598739:web:14908beb6e9c3c123846e6"
-};
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const provider = new GoogleAuthProvider();
-provider.setCustomParameters({ prompt: "select_account" });
+Memory: MC, MR, M+, M-
 
-/*** Account UI ***/
-const acctStatus = document.getElementById("acctStatus");
-const signInBtn = document.getElementById("signIn");
-const signOutBtn = document.getElementById("signOut");
 
-signInBtn.onclick = async () => {
+Formulas tab: save named formulas (JS or Python), then run them with parameters. */
+
+
+
+const DEG = "DEG" as const; const RAD = "RAD" as const;
+
+// Helper: wrap trig to support degree mode const withAngleMode = (expr: string, mode: typeof DEG | typeof RAD) => { if (mode === RAD) return expr; // Convert trig function arguments from deg->rad and inverse from rad->deg // We transform tokens like sin( -> sin(toRad( // and asin( -> toDeg(asin( const toRad = (s: string) => s .replace(/(?<![A-Za-z0-9_])sin(/g, "sin(toRad(") .replace(/(?<![A-Za-z0-9_])cos(/g, "cos(toRad(") .replace(/(?<![A-Za-z0-9_])tan(/g, "tan(toRad(") .replace(/(?<![A-Za-z0-9_])sinh(/g, "sinh(toRad(") .replace(/(?<![A-Za-z0-9_])cosh(/g, "cosh(toRad(") .replace(/(?<![A-Za-z0-9_])tanh(/g, "tanh(toRad("); const toDeg = (s: string) => s .replace(/(?<![A-Za-z0-9_])asin(/g, "toDeg(asin(") .replace(/(?<![A-Za-z0-9_])acos(/g, "toDeg(acos(") .replace(/(?<![A-Za-z0-9_])atan(/g, "toDeg(atan(") .replace(/(?<![A-Za-z0-9_])asinh(/g, "toDeg(asinh(") .replace(/(?<![A-Za-z0-9_])acosh(/g, "toDeg(acosh(") .replace(/(?<![A-Za-z0-9_])atanh(/g, "toDeg(atanh("); return toDeg(toRad(expr)); };
+
+// Provide helpers to math.js scope const buildScope = (extra: Record<string, any> = {}, angleMode: typeof DEG | typeof RAD = RAD) => { const toRad = (x: number) => (x * Math.PI) / 180; const toDeg = (x: number) => (x * 180) / Math.PI; const randint = (a: number, b: number) => Math.floor(Math.random() * (b - a + 1)) + a; const nPr = (n: number, r: number) => math.factorial(n) / math.factorial(n - r); const nCr = (n: number, r: number) => math.combinations(n, r); const tau = 2 * Math.PI; return { ...extra, pi: Math.PI, e: Math.E, tau, toRad, toDeg, randint, nPr, nCr, log10: (x: number) => Math.log10(x), ln: (x: number) => Math.log(x), // percent helper: 10% => 0.1; used during tokenization but exposed too pct: (x: number) => x / 100, }; };
+
+// Safe stringify of errors const errMsg = (e: any) => (e && e.message) ? e.message : String(e);
+
+// Storage helpers const LS_KEYS = { formulas: "nova_supercalc_formulas_v1", mem: "nova_supercalc_memory_v1", mode: "nova_supercalc_mode_v1", history: "nova_supercalc_history_v1", };
+
+// Types type Formula = { id: string; name: string; lang: "js" | "py"; params: string[]; // ["a","b",...] body: string; // expression (js) or python function body returning a value };
+
+export default function NovaSuperCalc() { const [display, setDisplay] = useState<string>(""); const [angleMode, setAngleMode] = useState<typeof DEG | typeof RAD>(() => (localStorage.getItem(LS_KEYS.mode) as any) || DEG); const [ans, setAns] = useState<number>(0); const [memory, setMemory] = useState<number>(() => Number(localStorage.getItem(LS_KEYS.mem) || 0)); const [history, setHistory] = useState<string[]>(() => { try { return JSON.parse(localStorage.getItem(LS_KEYS.history) || "[]"); } catch { return []; } });
+
+// Formula state const [formulas, setFormulas] = useState<Formula[]>(() => { try { return JSON.parse(localStorage.getItem(LS_KEYS.formulas) || "[]"); } catch { return []; } }); const [activeFormula, setActiveFormula] = useState<Partial<Formula>>({ lang: "js", name: "", params: [], body: "" }); const [pyodide, setPyodide] = useState<any>(null); const [pyReady, setPyReady] = useState<boolean>(false);
+
+// Load Pyodide lazily useEffect(() => { let cancelled = false; async function loadPy() { try { // @ts-ignore const { loadPyodide } = await import("https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"); const py = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/" }); if (!cancelled) { setPyodide(py); setPyReady(true); } } catch (e) { console.error("Pyodide load error", e); } } loadPy(); return () => { cancelled = true; }; }, []);
+
+useEffect(() => { localStorage.setItem(LS_KEYS.mode, angleMode); }, [angleMode]); useEffect(() => { localStorage.setItem(LS_KEYS.mem, String(memory)); }, [memory]); useEffect(() => { localStorage.setItem(LS_KEYS.history, JSON.stringify(history.slice(-200))); }, [history]); useEffect(() => { localStorage.setItem(LS_KEYS.formulas, JSON.stringify(formulas)); }, [formulas]);
+
+// Key handling (simple) useEffect(() => { const onKey = (e: KeyboardEvent) => { const k = e.key; if (/[0-9.]/.test(k)) setDisplay(d => d + k); else if (k === "+" || k === "-" || k === "*" || k === "/" || k === "^") setDisplay(d => d + k); else if (k === "(") setDisplay(d => d + "("); else if (k === ")") setDisplay(d => d + ")"); else if (k === "Enter" || k === "=") { e.preventDefault(); doEval(); } else if (k === "Backspace") setDisplay(d => d.slice(0, -1)); else if (k === "Escape") setDisplay(""); }; window.addEventListener("keydown", onKey); return () => window.removeEventListener("keydown", onKey); }, [angleMode, ans]);
+
+const push = (txt: string) => setDisplay(d => d + txt);
+
+const tokenFixups = (input: string) => { let s = input.trim(); if (!s) return s; // Replace percent occurrences: e.g. 10% -> pct(10) s = s.replace(/(\d+(?:.\d+)?)%/g, "pct($1)"); // Allow Ans, MEM s = s.replace(/\bAns\b/g, String(ans)); s = s.replace(/\bMEM\b/g, String(memory)); // Allow ^ as power for math.js // Already ok in math.js return s; };
+
+const doEval = () => { try { let expr = tokenFixups(display); expr = withAngleMode(expr, angleMode); const scope = buildScope({}, angleMode); const res = math.evaluate(expr, scope as any); const val = (typeof res === "number") ? res : (res?.valueOf?.() ?? res); setAns(Number(val)); setHistory(h => [...h, ${display} = ${val}]); setDisplay(String(val)); } catch (e) { setHistory(h => [...h, ${display} = Error: ${errMsg(e)}]); } };
+
+const clearAll = () => setDisplay(""); const backspace = () => setDisplay(d => d.slice(0, -1));
+
+// Button layout const rows: { label: string, on?: () => void, insert?: string, hint?: string }[][] = [ [ { label: "MC", on: () => setMemory(0), hint: "Memory Clear" }, { label: "MR", on: () => setDisplay(d => d + (Number(memory))), hint: "Memory Recall" }, { label: "M+", on: () => { try { setMemory(m => m + Number(math.evaluate(tokenFixups(display) || "0", buildScope()))); } catch {} } }, { label: "M-", on: () => { try { setMemory(m => m - Number(math.evaluate(tokenFixups(display) || "0", buildScope()))); } catch {} } }, { label: angleMode, on: () => setAngleMode(m => m === DEG ? RAD : DEG), hint: "Toggle Degree/Radian" }, { label: "Ans", insert: "Ans" }, { label: "+/-", on: () => setDisplay(d => d ? (d.startsWith("-") ? d.slice(1) : "-" + d) : d) }, { label: "C", on: clearAll }, { label: "⌫", on: backspace }, ], [ { label: "sin", insert: "sin(" }, { label: "cos", insert: "cos(" }, { label: "tan", insert: "tan(" }, { label: "asin", insert: "asin(" }, { label: "acos", insert: "acos(" }, { label: "atan", insert: "atan(" }, { label: "sinh", insert: "sinh(" }, { label: "cosh", insert: "cosh(" }, { label: "tanh", insert: "tanh(" }, ], [ { label: "π", insert: "pi" }, { label: "e", insert: "e" }, { label: "τ", insert: "tau" }, { label: "^", insert: "^" }, { label: "√", insert: "sqrt(" }, { label: "∛", insert: "nthRoot(" }, { label: "x²", insert: "^2" }, { label: "x³", insert: "^3" }, { label: "x⁻¹", insert: "^(-1)" }, ], [ { label: "log", insert: "log(" }, { label: "log10", insert: "log10(" }, { label: "ln", insert: "ln(" }, { label: "!", insert: "!" }, { label: "%", insert: "%" }, { label: "mod", insert: " mod " }, { label: "nPr", insert: "nPr(" }, { label: "nCr", insert: "nCr(" }, { label: "rand", insert: "rand()" }, ], [ { label: "7", insert: "7" }, { label: "8", insert: "8" }, { label: "9", insert: "9" }, { label: "/", insert: "/" }, { label: "(", insert: "(" }, { label: ")", insert: ")" }, { label: ",", insert: "," }, { label: "MEM", insert: "MEM" }, { label: "=", on: doEval }, ], [ { label: "4", insert: "4" }, { label: "5", insert: "5" }, { label: "6", insert: "6" }, { label: "", insert: "" }, { label: "-", insert: "-" }, { label: "+", insert: "+" }, { label: "0", insert: "0" }, { label: "1", insert: "1" }, { label: "2", insert: "2" }, ], [ { label: "3", insert: "3" }, { label: ".", insert: "." }, { label: "^r", insert: "^(" }, { label: "exp", insert: "exp(" }, { label: "min", insert: "min(" }, { label: "max", insert: "max(" }, { label: "sum", insert: "sum(" }, { label: "avg", insert: "mean(" }, { label: "=", on: doEval }, ], ];
+
+const onBtn = (b: { label: string, on?: () => void, insert?: string }) => { if (b.on) return b.on(); if (b.insert) return push(b.insert); };
+
+// Formula helpers const newFormula = () => setActiveFormula({ id: undefined, name: "", lang: "js", params: [], body: "" }); const saveFormula = () => { const f: Formula = { id: activeFormula?.id || crypto.randomUUID(), name: (activeFormula?.name || "").trim() || Formula_${formulas.length + 1}, lang: (activeFormula?.lang as any) || "js", params: (activeFormula?.params || []) as string[], body: activeFormula?.body || "", }; setFormulas(prev => { const ix = prev.findIndex(x => x.id === f.id); if (ix >= 0) { const cp = [...prev]; cp[ix] = f; return cp; } return [...prev, f]; }); setActiveFormula({ ...f }); }; const deleteFormula = (id: string) => { setFormulas(prev => prev.filter(f => f.id !== id)); if (activeFormula?.id === id) setActiveFormula({ lang: "js", name: "", params: [], body: "" }); };
+
+const runFormula = async (f: Formula, paramValues: Record<string, any>) => { try { if (f.lang === "js") { const scope = buildScope(paramValues, angleMode); const expr = withAngleMode(tokenFixups(f.body), angleMode); const result = math.evaluate(expr, scope as any); return typeof result === "number" ? result : (result?.valueOf?.() ?? result); } else { if (!pyReady || !pyodide) throw new Error("Python engine not ready"); // Build Python code that defines parameters in local scope and evaluates body const assignments = Object.entries(paramValues).map(([k, v]) => ${k} = ${JSON.stringify(v)}).join("\n"); const code = ${assignments}\n\nimport math\nfrom math import pi, e\n\n# Helper functions matching JS scope\nfrom math import sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, sqrt, log, exp\n\n# Degrees helpers\nimport math\n def toRad(x):\n    return (x*math.pi)/180.0\n\n def toDeg(x):\n    return (x*180.0)/math.pi\n\n# Combinatorics\nimport math as _m\n def nPr(n,r):\n    return math.factorial(n)//math.factorial(n-r)\n\n def nCr(n,r):\n    return math.comb(n,r)\n\n# Percent helper\n def pct(x):\n    return x/100.0\n\n# randint helper\nimport random\n def randint(a,b):\n    return random.randint(int(a), int(b))\n\n# User body must assign to _out or be an expression. We'll try eval first. _out = None try: _out = (${f.body}) except Exception: pass if _out is None: # execute as statements, expecting _out set by user or last expression captured def _run(): ${f.body.split("\n").map((line)=>line).join("\n        ")} _run() # _out must be set in body _out ; const result = await pyodide.runPythonAsync(code); return result; } } catch (e) { throw e; } };
+
+// UI for running a formula const FormulaRunner: React.FC<{ f: Formula }> = ({ f }) => { const [vals, setVals] = useState<Record<string, any>>(() => Object.fromEntries((f.params||[]).map(p => [p, ""]))); const [out, setOut] = useState<string>(""); const [busy, setBusy] = useState(false);
+
+const go = async () => {
+  setBusy(true); setOut("");
   try {
-    await signInWithPopup(auth, provider);
+    const parsed: Record<string, any> = {};
+    for (const p of f.params) parsed[p] = Number(vals[p]);
+    const res = await runFormula(f, parsed);
+    setOut(String(res));
   } catch (e) {
-    if (e.code === "auth/popup-blocked" || e.code === "auth/cancelled-popup-request") {
-      await signInWithRedirect(auth, provider);
-    } else {
-      alert(e.message);
-      console.error(e);
-    }
-  }
-};
-signOutBtn.onclick = () => signOut(auth);
-
-onAuthStateChanged(auth, async (user) => {
-  USER = user || null;
-  if (USER) {
-    acctStatus.textContent = `Signed in as ${USER.displayName || USER.email || USER.uid}`;
-    signInBtn.style.display = "none";
-    signOutBtn.style.display = "inline-block";
-    await loadProfile();
-  } else {
-    acctStatus.textContent = "Not signed in";
-    signInBtn.style.display = "inline-block";
-    signOutBtn.style.display = "none";
-  }
-});
-
-/*** PROFILE LOAD/SAVE (Firestore <-> Local) ***/
-async function loadProfile(){
-  if(!USER) return;
-  try{
-    const ref = doc(db, "users", USER.uid);
-    const snap = await getDoc(ref);
-    if (snap.exists()) {
-      const data = snap.data();
-      if (data.nasaKey){ NASA_KEY=data.nasaKey; LS.setNasaKey(NASA_KEY); nasaKeyLbl.textContent=NASA_KEY; }
-      if (data.unsplashKey){ UNSPLASH_KEY=data.unsplashKey; LS.setUnsplashKey(UNSPLASH_KEY); unsplashKeyLbl.textContent=UNSPLASH_KEY; refreshUnsplashVisibility(); }
-      if (Array.isArray(data.favs)){ FAVS=data.favs; LS.setFavs(FAVS); }
-    } else {
-      await setDoc(ref, { nasaKey: NASA_KEY, unsplashKey: UNSPLASH_KEY, favs: FAVS });
-    }
-  } catch (e){ console.warn("loadProfile:", e); }
-  renderFavs();
-}
-async function saveProfile(force=false){
-  if(!USER){ if(force) alert("Sign in to sync."); return; }
-  try{
-    const ref = doc(db, "users", USER.uid);
-    await setDoc(ref, { nasaKey: NASA_KEY, unsplashKey: UNSPLASH_KEY, favs: FAVS }, { merge:true });
-    if(force) alert("Synced!");
-  }catch(e){ if(force) alert("Sync failed: "+e.message); }
-}
-
-/*** ISS live (Leaflet + wheretheiss.at) ***/
-const issInfo = document.getElementById("issInfo");
-let issMap, issMarker, issTimer = null;
-
-function initISSMap(){
-  if (issMap) return;
-  const container = document.getElementById("issMap");
-  if (!container) return;
-  issMap = L.map('issMap', { zoomControl: true }).setView([0,0], 2);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 6,
-    attribution: '&copy; OpenStreetMap'
-  }).addTo(issMap);
-  issMarker = L.marker([0,0]).addTo(issMap).bindPopup('ISS');
-  setTimeout(()=>issMap.invalidateSize(), 80);
-}
-
-async function fetchISS(){
-  try{
-    const r = await fetch("https://api.wheretheiss.at/v1/satellites/25544");
-    if (!r.ok) throw new Error("HTTP "+r.status);
-    const js = await r.json();
-    const { latitude, longitude, velocity, visibility } = js;
-    if (!issMap || !issMarker) return;
-    issMarker.setLatLng([latitude, longitude]);
-    issMap.setView([latitude, longitude], Math.max(2, issMap.getZoom()));
-    issInfo.textContent = `Lat ${latitude.toFixed(2)}, Lon ${longitude.toFixed(2)} • ${velocity.toFixed(1)} km/h • ${visibility}`;
-  }catch(e){
-    issInfo.textContent = "ISS error: " + (e.message || e);
-  }
-}
-
-document.getElementById("issStart").onclick = () => {
-  initISSMap();
-  fetchISS();
-  if (issTimer) clearInterval(issTimer);
-  issTimer = setInterval(fetchISS, 5000);
-  issInfo.textContent = "Tracking…";
-};
-document.getElementById("issStop").onclick = () => {
-  if (issTimer) clearInterval(issTimer);
-  issTimer = null;
-  issInfo.textContent = "Stopped.";
+    setOut("Error: " + errMsg(e));
+  } finally { setBusy(false); }
 };
 
-/*** INIT ***/
-(async ()=>{
-  renderFavs();
-  try { await loadAPODDaily(); } catch {}
-  try { await rerollAPOD(); } catch {}
-})();
-</script>
-</body>
-</html>
+return (
+  <Card className="p-3">
+    <div className="flex items-center justify-between">
+      <div className="font-semibold">{f.name} <Badge variant="secondary" className="ml-2">{f.lang.toUpperCase()}</Badge></div>
+      <div className="text-xs text-muted-foreground">params: ({f.params.join(", ")})</div>
+    </div>
+    <div className="grid grid-cols-2 gap-2 mt-3">
+      {f.params.map(p => (
+        <div key={p} className="flex items-center gap-2">
+          <Badge variant="outline" className="min-w-14 justify-center">{p}</Badge>
+          <Input inputMode="decimal" value={vals[p]} onChange={e => setVals(v => ({ ...v, [p]: e.target.value }))} placeholder="value" />
+        </div>
+      ))}
+    </div>
+    <div className="flex gap-2 mt-3">
+      <Button onClick={go} disabled={busy}><Play className="w-4 h-4 mr-2" />Run</Button>
+      <Button variant="destructive" onClick={() => setOut("")}>Clear Output</Button>
+    </div>
+    {out && <div className="mt-3 p-2 rounded-lg bg-muted"><span className="text-xs text-muted-foreground">Output:</span>
+      <div className="font-mono break-all">{out}</div></div>}
+  </Card>
+);
+
+};
+
+return ( <div className="w-full min-h-[100vh] bg-gradient-to-b from-slate-50 to-white p-4 grid gap-4 lg:grid-cols-2"> {/* Calculator Panel */} <Card className="shadow-md"> <CardContent className="p-4"> <div className="flex items-center justify-between mb-2"> <div className="text-xl font-semibold flex items-center gap-2"><Sigma className="w-5 h-5"/> Nova SuperCalc</div> <div className="text-xs text-muted-foreground">Scientific • JS & Python formulas</div> </div> <Input className="text-right text-2xl py-6 font-mono" value={display} onChange={e => setDisplay(e.target.value)} placeholder="Type or use buttons…"/> <div className="grid grid-cols-9 gap-2 mt-4"> {rows.flat().map((b, i) => ( <Button key={i} variant={b.label === "=" ? "default" : "secondary"} className="h-12 text-sm" onClick={() => onBtn(b)} title={b.hint || b.label}>{b.label}</Button> ))} </div> <div className="flex gap-2 mt-3"> <Button onClick={doEval} className="flex-1"><Play className="w-4 h-4 mr-2"/>Evaluate</Button> <Button variant="outline" onClick={() => setDisplay("") } className="flex-1"><RotateCcw className="w-4 h-4 mr-2"/>Reset</Button> </div> <Separator className="my-3"/> <div className="text-sm font-medium mb-2">History</div> <ScrollArea className="h-40 border rounded-lg p-2 bg-muted/30"> <div className="space-y-1 font-mono text-sm"> {history.slice().reverse().map((h, i) => ( <div key={i} className="flex justify-between gap-2"><span className="truncate">{h}</span></div> ))} </div> </ScrollArea> </CardContent> </Card>
+
+{/* Formulas Panel */}
+  <Card className="shadow-md">
+    <CardContent className="p-4">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-xl font-semibold flex items-center gap-2"><Settings2 className="w-5 h-5"/> Formulas</div>
+        <div className="text-xs text-muted-foreground">Saved locally • {pyReady ? "Python ready" : "Python loading…"}</div>
+      </div>
+
+      <Tabs defaultValue="manage" className="w-full">
+        <TabsList>
+          <TabsTrigger value="manage">Manage</TabsTrigger>
+          <TabsTrigger value="run">Run</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="manage" className="mt-3">
+          <div className="grid lg:grid-cols-2 gap-4">
+            <Card className="p-3">
+              <div className="text-sm font-medium mb-2">Create / Edit</div>
+              <div className="grid gap-2">
+                <Input placeholder="Formula name (e.g., hypotenuse)" value={activeFormula?.name || ""} onChange={e => setActiveFormula(f => ({ ...f, name: e.target.value }))} />
+                <div className="flex items-center gap-2">
+                  <Select value={(activeFormula?.lang as any) || "js"} onValueChange={(v) => setActiveFormula(f => ({ ...f, lang: v as any }))}>
+                    <SelectTrigger className="w-40"><SelectValue placeholder="Language" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="js">JS (math.js)</SelectItem>
+                      <SelectItem value="py">Python (Pyodide)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input placeholder="Parameters (comma-separated, e.g., a,b)" value={(activeFormula?.params || []).join(",")} onChange={e => setActiveFormula(f => ({ ...f, params: e.target.value.split(",").map(s => s.trim()).filter(Boolean) }))} />
+                </div>
+                <Textarea rows={8} placeholder={((activeFormula?.lang||"js")==="js") ? "Enter a JS math expression (e.g., sqrt(a^2 + b^2))" : "Enter Python expression or statements assigning to _out\nExample (expression): sqrt(a**2 + b**2)\nExample (statements):\n_c = a**2 + b**2\n_out = _c**0.5"} value={activeFormula?.body || ""} onChange={e => setActiveFormula(f => ({ ...f, body: e.target.value }))} />
+                <div className="flex gap-2">
+                  <Button onClick={saveFormula}><Save className="w-4 h-4 mr-2"/>Save</Button>
+                  <Button variant="outline" onClick={newFormula}><Plus className="w-4 h-4 mr-2"/>New</Button>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-3">
+              <div className="text-sm font-medium mb-2">Saved</div>
+              <ScrollArea className="h-72 border rounded-md p-2 bg-muted/30">
+                <div className="space-y-2">
+                  {formulas.length === 0 && <div className="text-sm text-muted-foreground">No formulas yet. Create one on the left.</div>}
+                  {formulas.map(f => (
+                    <div key={f.id} className="p-2 rounded-md bg-white shadow-sm border">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-medium">{f.name} <Badge variant="secondary" className="ml-2">{f.lang.toUpperCase()}</Badge></div>
+                          <div className="text-xs text-muted-foreground">({f.params.join(", ")})</div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" onClick={() => setActiveFormula(f)}>Edit</Button>
+                          <Button variant="destructive" size="sm" onClick={() => deleteFormula(f.id)}><Trash2 className="w-4 h-4"/></Button>
+                        </div>
+                      </div>
+                      <div className="mt-2 text-xs font-mono whitespace-pre-wrap break-words">{f.body}</div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="run" className="mt-3">
+          <div className="grid gap-3">
+            {formulas.length === 0 && <div className="text-sm text-muted-foreground">No formulas saved. Create one in Manage tab.</div>}
+            {formulas.map(f => (
+              <FormulaRunner key={f.id} f={f} />
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </CardContent>
+  </Card>
+</div>
+
+); }
+
